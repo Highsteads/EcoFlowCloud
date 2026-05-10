@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PluginConfig>
+
+    <Field id="sep_account" type="separator"/>
+
+    <Field id="label_account" type="label">
+        <Label>EcoFlow Account Credentials</Label>
+    </Field>
+
+    <Field id="ecoflow_email" type="textfield" defaultValue="">
+        <Label>EcoFlow Email:</Label>
+        <Description>Your EcoFlow account email address. Can also be set in secrets.py as ECOFLOW_EMAIL.</Description>
+    </Field>
+
+    <Field id="ecoflow_password" type="textfield" defaultValue="" secure="true">
+        <Label>EcoFlow Password:</Label>
+        <Description>Your EcoFlow account password. Can also be set in secrets.py as ECOFLOW_PASSWORD.</Description>
+    </Field>
+
+    <Field id="sep_server" type="separator"/>
+
+    <Field id="label_server" type="label">
+        <Label>Server Region</Label>
+    </Field>
+
+    <Field id="api_server" type="menu" defaultValue="api-e.ecoflow.com">
+        <Label>API Server:</Label>
+        <List>
+            <Option value="api-e.ecoflow.com">EU / UK (api-e.ecoflow.com)</Option>
+            <Option value="api.ecoflow.com">US (api.ecoflow.com)</Option>
+            <Option value="api-a.ecoflow.com">Asia-Pacific (api-a.ecoflow.com)</Option>
+            <Option value="custom">Custom...</Option>
+        </List>
+    </Field>
+
+    <Field id="custom_api_host" type="textfield" defaultValue=""
+           visibleBindingId="api_server" visibleBindingValue="custom">
+        <Label>Custom API Host:</Label>
+        <Description>e.g. api-e.ecoflow.com (hostname only, no https://)</Description>
+    </Field>
+
+    <Field id="sep_logging" type="separator"/>
+
+    <Field id="label_logging" type="label">
+        <Label>Logging</Label>
+    </Field>
+
+    <Field id="logLevel" type="menu" defaultValue="20">
+        <Label>Log Level:</Label>
+        <List>
+            <Option value="5">Detailed Debugging</Option>
+            <Option value="10">Debugging</Option>
+            <Option value="20">Informational (default)</Option>
+            <Option value="30">Warnings Only</Option>
+            <Option value="40">Errors Only</Option>
+        </List>
+    </Field>
+
+</PluginConfig>

@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>CFBundleDisplayName</key>
+    <string>EcoFlow Cloud</string>
+
+    <key>CFBundleName</key>
+    <string>EcoFlowCloud</string>
+
+    <key>CFBundleIdentifier</key>
+    <string>com.clives.indigoplugin.ecoflowcloud</string>
+
+    <key>CFBundleVersion</key>
+    <string>1.0</string>
+
+    <key>PluginVersion</key>
+    <string>1.0</string>
+
+    <key>ServerApiVersion</key>
+    <string>3.0</string>
+
+    <key>IwsApiVersion</key>
+    <string>1.0.0</string>
+
+    <key>Author</key>
+    <string>CliveS and Claude Sonnet 4.6</string>
+
+    <key>Description</key>
+    <string>Integrates EcoFlow portable power stations (River 3, Delta 3) via EcoFlow cloud MQTT. Real-time monitoring and control of battery, AC/DC outputs, charge limits, and power flow.</string>
+
+    <key>CFBundleURLTypes</key>
+    <array/>
+
+    <key>GithubInfo</key>
+    <dict>
+        <key>GithubUser</key>
+        <string>Highsteads</string>
+        <key>GithubRepo</key>
+        <string>EcoFlowCloud</string>
+    </dict>
+</dict>
+</plist>

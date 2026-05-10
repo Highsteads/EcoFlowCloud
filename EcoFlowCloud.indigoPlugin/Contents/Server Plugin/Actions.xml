@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Actions>
+
+    <!-- ============================================================
+         Set AC Output
+         ============================================================ -->
+    <Action id="setACOutput" deviceFilter="self.ecoflowRiver3, self.ecoflowDelta3">
+        <Name>Set AC Output</Name>
+        <CallbackMethod>actionSetACOutput</CallbackMethod>
+        <ConfigUI>
+            <Field id="device" type="target" filterDevice="self.ecoflowRiver3, self.ecoflowDelta3">
+                <Label>EcoFlow Device:</Label>
+            </Field>
+            <Field id="ac_state" type="menu" defaultValue="on">
+                <Label>AC Output:</Label>
+                <List>
+                    <Option value="on">Turn On</Option>
+                    <Option value="off">Turn Off</Option>
+                </List>
+            </Field>
+        </ConfigUI>
+    </Action>
+
+    <!-- ============================================================
+         Set DC Output
+         ============================================================ -->
+    <Action id="setDCOutput" deviceFilter="self.ecoflowRiver3, self.ecoflowDelta3">
+        <Name>Set DC Output</Name>
+        <CallbackMethod>actionSetDCOutput</CallbackMethod>
+        <ConfigUI>
+            <Field id="device" type="target" filterDevice="self.ecoflowRiver3, self.ecoflowDelta3">
+                <Label>EcoFlow Device:</Label>
+            </Field>
+            <Field id="dc_state" type="menu" defaultValue="on">
+                <Label>DC Output:</Label>
+                <List>
+                    <Option value="on">Turn On</Option>
+                    <Option value="off">Turn Off</Option>
+                </List>
+            </Field>
+        </ConfigUI>
+    </Action>
+
+    <!-- ============================================================
+         Set XBoost
+         ============================================================ -->
+    <Action id="setXBoost" deviceFilter="self.ecoflowRiver3, self.ecoflowDelta3">
+        <Name>Set XBoost Mode</Name>
+        <CallbackMethod>actionSetXBoost</CallbackMethod>
+        <ConfigUI>
+            <Field id="device" type="target" filterDevice="self.ecoflowRiver3, self.ecoflowDelta3">
+                <Label>EcoFlow Device:</Label>
+            </Field>
+            <Field id="xboost_state" type="menu" defaultValue="on">
+                <Label>XBoost:</Label>
+                <List>
+                    <Option value="on">Enable</Option>
+                    <Option value="off">Disable</Option>
+                </List>
+            </Field>
+        </ConfigUI>
+    </Action>
+
+    <!-- ============================================================
+         Set Max Charge Level
+         ============================================================ -->
+    <Action id="setMaxChargeSoc" deviceFilter="self.ecoflowRiver3, self.ecoflowDelta3">
+        <Name>Set Max Charge Level</Name>
+        <CallbackMethod>actionSetMaxChargeSoc</CallbackMethod>
+        <ConfigUI>
+            <Field id="device" type="target" filterDevice="self.ecoflowRiver3, self.ecoflowDelta3">
+                <Label>EcoFlow Device:</Label>
+            </Field>
+            <Field id="max_soc" type="menu" defaultValue="100">
+                <Label>Max Charge Level (%):</Label>
+                <List>
+                    <Option value="50">50%</Option>
+                    <Option value="60">60%</Option>
+                    <Option value="70">70%</Option>
+                    <Option value="80">80%</Option>
+                    <Option value="90">90%</Option>
+                    <Option value="100">100% (default)</Option>
+                </List>
+            </Field>
+        </ConfigUI>
+    </Action>
+
+    <!-- ============================================================
+         Set Min Discharge Level
+         ============================================================ -->
+    <Action id="setMinDischargeSoc" deviceFilter="self.ecoflowRiver3, self.ecoflowDelta3">
+        <Name>Set Min Discharge Level</Name>
+        <CallbackMethod>actionSetMinDischargeSoc</CallbackMethod>
+        <ConfigUI>
+            <Field id="device" type="target" filterDevice="self.ecoflowRiver3, self.ecoflowDelta3">
+                <Label>EcoFlow Device:</Label>
+            </Field>
+            <Field id="min_soc" type="menu" defaultValue="0">
+                <Label>Min Discharge Level (%):</Label>
+                <List>
+                    <Option value="0">0% (default)</Option>
+                    <Option value="5">5%</Option>
+                    <Option value="10">10%</Option>
+                    <Option value="15">15%</Option>
+                    <Option value="20">20%</Option>
+                    <Option value="30">30%</Option>
+                </List>
+            </Field>
+        </ConfigUI>
+    </Action>
+
+    <!-- ============================================================
+         Set AC Charging Power
+         ============================================================ -->
+    <Action id="setACChargingPower" deviceFilter="self.ecoflowRiver3, self.ecoflowDelta3">
+        <Name>Set AC Charging Power</Name>
+        <CallbackMethod>actionSetACChargingPower</CallbackMethod>
+        <ConfigUI>
+            <Field id="device" type="target" filterDevice="self.ecoflowRiver3, self.ecoflowDelta3">
+                <Label>EcoFlow Device:</Label>
+            </Field>
+            <Field id="charge_watts" type="menu" defaultValue="305">
+                <Label>AC Charging Power (W):</Label>
+                <List>
+                    <Option value="50">50 W (minimum)</Option>
+                    <Option value="100">100 W</Option>
+                    <Option value="150">150 W</Option>
+                    <Option value="200">200 W</Option>
+                    <Option value="250">250 W</Option>
+                    <Option value="305">305 W (maximum)</Option>
+                </List>
+            </Field>
+        </ConfigUI>
+    </Action>
+
+</Actions>

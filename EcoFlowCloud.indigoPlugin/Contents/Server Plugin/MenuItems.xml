@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<MenuItems>
+
+    <MenuItem id="menuRefreshConnection">
+        <Name>Reconnect to EcoFlow Cloud</Name>
+        <CallbackMethod>menuRefreshConnection</CallbackMethod>
+    </MenuItem>
+
+    <MenuItem id="menuDeviceStatus">
+        <Name>Log Device Status Summary</Name>
+        <CallbackMethod>menuDeviceStatus</CallbackMethod>
+    </MenuItem>
+
+    <MenuItem id="sep1" isSeparator="true"/>
+
+    <MenuItem id="showPluginInfo">
+        <Name>Show Plugin Info</Name>
+        <CallbackMethod>showPluginInfo</CallbackMethod>
+    </MenuItem>
+
+</MenuItems>

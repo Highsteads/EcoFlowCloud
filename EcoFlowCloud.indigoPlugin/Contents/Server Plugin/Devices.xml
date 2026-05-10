@@ -1,0 +1,382 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Devices>
+
+    <!-- ============================================================
+         EcoFlow River 3
+         ============================================================ -->
+    <Device type="custom" id="ecoflowRiver3">
+        <Name>EcoFlow River 3</Name>
+        <ConfigUI>
+            <Field id="serial_number" type="textfield" defaultValue="">
+                <Label>Serial Number:</Label>
+                <Description>Your EcoFlow River 3 serial number (found in the EcoFlow app under Device Info).</Description>
+            </Field>
+            <Field id="mirror_to_variable" type="checkbox" defaultValue="false">
+                <Label>Mirror Key States to Variables:</Label>
+                <Description>Write battery %, power, and output states to the EcoFlow variable folder.</Description>
+            </Field>
+        </ConfigUI>
+
+        <States>
+            <!-- Battery -->
+            <State id="battery_soc">
+                <ValueType>Integer</ValueType>
+                <TriggerLabel>Battery SOC (%)</TriggerLabel>
+                <ControlPageLabel>Battery</ControlPageLabel>
+            </State>
+            <State id="battery_soh">
+                <ValueType>Integer</ValueType>
+                <TriggerLabel>Battery Health (%)</TriggerLabel>
+                <ControlPageLabel>Battery Health</ControlPageLabel>
+            </State>
+            <State id="battery_remain_wh">
+                <ValueType>Integer</ValueType>
+                <TriggerLabel>Battery Remaining (Wh)</TriggerLabel>
+                <ControlPageLabel>Remaining</ControlPageLabel>
+            </State>
+            <State id="battery_full_cap_wh">
+                <ValueType>Integer</ValueType>
+                <TriggerLabel>Battery Full Capacity (Wh)</TriggerLabel>
+                <ControlPageLabel>Full Capacity</ControlPageLabel>
+            </State>
+            <State id="battery_design_wh">
+                <ValueType>Integer</ValueType>
+                <TriggerLabel>Battery Design Capacity (Wh)</TriggerLabel>
+                <ControlPageLabel>Design Capacity</ControlPageLabel>
+            </State>
+            <State id="battery_voltage">
+                <ValueType>Float</ValueType>
+                <TriggerLabel>Battery Voltage (V)</TriggerLabel>
+                <ControlPageLabel>Voltage</ControlPageLabel>
+            </State>
+            <State id="cell_temp_min_c">
+                <ValueType>Float</ValueType>
+                <TriggerLabel>Cell Temp Min (degC)</TriggerLabel>
+                <ControlPageLabel>Cell Temp Min</ControlPageLabel>
+            </State>
+            <State id="cell_temp_max_c">
+                <ValueType>Float</ValueType>
+                <TriggerLabel>Cell Temp Max (degC)</TriggerLabel>
+                <ControlPageLabel>Cell Temp Max</ControlPageLabel>
+            </State>
+            <State id="cycles">
+                <ValueType>Integer</ValueType>
+                <TriggerLabel>Charge Cycles</TriggerLabel>
+                <ControlPageLabel>Cycles</ControlPageLabel>
+            </State>
+            <State id="charging_state">
+                <ValueType>String</ValueType>
+                <TriggerLabel>Charging State</TriggerLabel>
+                <ControlPageLabel>Charging State</ControlPageLabel>
+            </State>
+
+            <!-- Power flow -->
+            <State id="power_in_w">
+                <ValueType>Integer</ValueType>
+                <TriggerLabel>Total Input Power (W)</TriggerLabel>
+                <ControlPageLabel>Input Power</ControlPageLabel>
+            </State>
+            <State id="power_out_w">
+                <ValueType>Integer</ValueType>
+                <TriggerLabel>Total Output Power (W)</TriggerLabel>
+                <ControlPageLabel>Output Power</ControlPageLabel>
+            </State>
+            <State id="solar_in_w">
+                <ValueType>Integer</ValueType>
+                <TriggerLabel>Solar Input (W)</TriggerLabel>
+                <ControlPageLabel>Solar In</ControlPageLabel>
+            </State>
+            <State id="ac_in_w">
+                <ValueType>Integer</ValueType>
+                <TriggerLabel>AC Input (W)</TriggerLabel>
+                <ControlPageLabel>AC In</ControlPageLabel>
+            </State>
+            <State id="ac_out_w">
+                <ValueType>Integer</ValueType>
+                <TriggerLabel>AC Output (W)</TriggerLabel>
+                <ControlPageLabel>AC Out</ControlPageLabel>
+            </State>
+            <State id="dc_12v_w">
+                <ValueType>Integer</ValueType>
+                <TriggerLabel>12V DC Output (W)</TriggerLabel>
+                <ControlPageLabel>12V DC</ControlPageLabel>
+            </State>
+            <State id="typec1_w">
+                <ValueType>Integer</ValueType>
+                <TriggerLabel>USB-C Output (W)</TriggerLabel>
+                <ControlPageLabel>USB-C</ControlPageLabel>
+            </State>
+            <State id="usb1_w">
+                <ValueType>Integer</ValueType>
+                <TriggerLabel>USB-A 1 Output (W)</TriggerLabel>
+                <ControlPageLabel>USB-A 1</ControlPageLabel>
+            </State>
+            <State id="usb2_w">
+                <ValueType>Integer</ValueType>
+                <TriggerLabel>USB-A 2 Output (W)</TriggerLabel>
+                <ControlPageLabel>USB-A 2</ControlPageLabel>
+            </State>
+
+            <!-- Time estimates -->
+            <State id="charge_mins">
+                <ValueType>Integer</ValueType>
+                <TriggerLabel>Time to Full (min)</TriggerLabel>
+                <ControlPageLabel>To Full</ControlPageLabel>
+            </State>
+            <State id="discharge_mins">
+                <ValueType>Integer</ValueType>
+                <TriggerLabel>Time Remaining (min)</TriggerLabel>
+                <ControlPageLabel>Remaining</ControlPageLabel>
+            </State>
+
+            <!-- Temperatures -->
+            <State id="temp_dc_c">
+                <ValueType>Float</ValueType>
+                <TriggerLabel>DC Converter Temp (degC)</TriggerLabel>
+                <ControlPageLabel>DC Temp</ControlPageLabel>
+            </State>
+            <State id="temp_ac_c">
+                <ValueType>Float</ValueType>
+                <TriggerLabel>AC Converter Temp (degC)</TriggerLabel>
+                <ControlPageLabel>AC Temp</ControlPageLabel>
+            </State>
+
+            <!-- Control states -->
+            <State id="ac_out_en">
+                <ValueType>Boolean</ValueType>
+                <TriggerLabel>AC Output Enabled</TriggerLabel>
+                <ControlPageLabel>AC Output</ControlPageLabel>
+            </State>
+            <State id="dc_en">
+                <ValueType>Boolean</ValueType>
+                <TriggerLabel>DC Output Enabled</TriggerLabel>
+                <ControlPageLabel>DC Output</ControlPageLabel>
+            </State>
+            <State id="xboost_en">
+                <ValueType>Boolean</ValueType>
+                <TriggerLabel>XBoost Enabled</TriggerLabel>
+                <ControlPageLabel>XBoost</ControlPageLabel>
+            </State>
+            <State id="max_charge_soc">
+                <ValueType>Integer</ValueType>
+                <TriggerLabel>Max Charge Level (%)</TriggerLabel>
+                <ControlPageLabel>Charge Limit</ControlPageLabel>
+            </State>
+            <State id="min_discharge_soc">
+                <ValueType>Integer</ValueType>
+                <TriggerLabel>Min Discharge Level (%)</TriggerLabel>
+                <ControlPageLabel>Discharge Floor</ControlPageLabel>
+            </State>
+            <State id="ac_charging_w">
+                <ValueType>Integer</ValueType>
+                <TriggerLabel>AC Charging Power (W)</TriggerLabel>
+                <ControlPageLabel>Charge Rate</ControlPageLabel>
+            </State>
+
+            <!-- Plugin metadata -->
+            <State id="deviceOnline">
+                <ValueType>Boolean</ValueType>
+                <TriggerLabel>Device Online</TriggerLabel>
+                <ControlPageLabel>Online</ControlPageLabel>
+            </State>
+            <State id="lastUpdate">
+                <ValueType>String</ValueType>
+                <TriggerLabel>Last Update</TriggerLabel>
+                <ControlPageLabel>Last Update</ControlPageLabel>
+            </State>
+        </States>
+    </Device>
+
+
+    <!-- ============================================================
+         EcoFlow Delta 3
+         ============================================================ -->
+    <Device type="custom" id="ecoflowDelta3">
+        <Name>EcoFlow Delta 3</Name>
+        <ConfigUI>
+            <Field id="serial_number" type="textfield" defaultValue="">
+                <Label>Serial Number:</Label>
+                <Description>Your EcoFlow Delta 3 serial number (found in the EcoFlow app under Device Info).</Description>
+            </Field>
+            <Field id="mirror_to_variable" type="checkbox" defaultValue="false">
+                <Label>Mirror Key States to Variables:</Label>
+                <Description>Write battery %, power, and output states to the EcoFlow variable folder.</Description>
+            </Field>
+        </ConfigUI>
+
+        <States>
+            <!-- Battery -->
+            <State id="battery_soc">
+                <ValueType>Integer</ValueType>
+                <TriggerLabel>Battery SOC (%)</TriggerLabel>
+                <ControlPageLabel>Battery</ControlPageLabel>
+            </State>
+            <State id="battery_soh">
+                <ValueType>Integer</ValueType>
+                <TriggerLabel>Battery Health (%)</TriggerLabel>
+                <ControlPageLabel>Battery Health</ControlPageLabel>
+            </State>
+            <State id="battery_remain_wh">
+                <ValueType>Integer</ValueType>
+                <TriggerLabel>Battery Remaining (Wh)</TriggerLabel>
+                <ControlPageLabel>Remaining</ControlPageLabel>
+            </State>
+            <State id="battery_full_cap_wh">
+                <ValueType>Integer</ValueType>
+                <TriggerLabel>Battery Full Capacity (Wh)</TriggerLabel>
+                <ControlPageLabel>Full Capacity</ControlPageLabel>
+            </State>
+            <State id="battery_design_wh">
+                <ValueType>Integer</ValueType>
+                <TriggerLabel>Battery Design Capacity (Wh)</TriggerLabel>
+                <ControlPageLabel>Design Capacity</ControlPageLabel>
+            </State>
+            <State id="battery_voltage">
+                <ValueType>Float</ValueType>
+                <TriggerLabel>Battery Voltage (V)</TriggerLabel>
+                <ControlPageLabel>Voltage</ControlPageLabel>
+            </State>
+            <State id="cell_temp_min_c">
+                <ValueType>Float</ValueType>
+                <TriggerLabel>Cell Temp Min (degC)</TriggerLabel>
+                <ControlPageLabel>Cell Temp Min</ControlPageLabel>
+            </State>
+            <State id="cell_temp_max_c">
+                <ValueType>Float</ValueType>
+                <TriggerLabel>Cell Temp Max (degC)</TriggerLabel>
+                <ControlPageLabel>Cell Temp Max</ControlPageLabel>
+            </State>
+            <State id="cycles">
+                <ValueType>Integer</ValueType>
+                <TriggerLabel>Charge Cycles</TriggerLabel>
+                <ControlPageLabel>Cycles</ControlPageLabel>
+            </State>
+            <State id="charging_state">
+                <ValueType>String</ValueType>
+                <TriggerLabel>Charging State</TriggerLabel>
+                <ControlPageLabel>Charging State</ControlPageLabel>
+            </State>
+
+            <!-- Power flow -->
+            <State id="power_in_w">
+                <ValueType>Integer</ValueType>
+                <TriggerLabel>Total Input Power (W)</TriggerLabel>
+                <ControlPageLabel>Input Power</ControlPageLabel>
+            </State>
+            <State id="power_out_w">
+                <ValueType>Integer</ValueType>
+                <TriggerLabel>Total Output Power (W)</TriggerLabel>
+                <ControlPageLabel>Output Power</ControlPageLabel>
+            </State>
+            <State id="solar_in_w">
+                <ValueType>Integer</ValueType>
+                <TriggerLabel>Solar Input (W)</TriggerLabel>
+                <ControlPageLabel>Solar In</ControlPageLabel>
+            </State>
+            <State id="ac_in_w">
+                <ValueType>Integer</ValueType>
+                <TriggerLabel>AC Input (W)</TriggerLabel>
+                <ControlPageLabel>AC In</ControlPageLabel>
+            </State>
+            <State id="ac_out_w">
+                <ValueType>Integer</ValueType>
+                <TriggerLabel>AC Output (W)</TriggerLabel>
+                <ControlPageLabel>AC Out</ControlPageLabel>
+            </State>
+            <State id="ac_out_voltage">
+                <ValueType>Integer</ValueType>
+                <TriggerLabel>AC Output Voltage (V)</TriggerLabel>
+                <ControlPageLabel>AC Out Voltage</ControlPageLabel>
+            </State>
+            <State id="dc_12v_w">
+                <ValueType>Integer</ValueType>
+                <TriggerLabel>12V DC Output (W)</TriggerLabel>
+                <ControlPageLabel>12V DC</ControlPageLabel>
+            </State>
+            <State id="typec1_w">
+                <ValueType>Integer</ValueType>
+                <TriggerLabel>USB-C Output (W)</TriggerLabel>
+                <ControlPageLabel>USB-C</ControlPageLabel>
+            </State>
+            <State id="usb1_w">
+                <ValueType>Integer</ValueType>
+                <TriggerLabel>USB-A 1 Output (W)</TriggerLabel>
+                <ControlPageLabel>USB-A 1</ControlPageLabel>
+            </State>
+            <State id="usb2_w">
+                <ValueType>Integer</ValueType>
+                <TriggerLabel>USB-A 2 Output (W)</TriggerLabel>
+                <ControlPageLabel>USB-A 2</ControlPageLabel>
+            </State>
+
+            <!-- Time estimates -->
+            <State id="charge_mins">
+                <ValueType>Integer</ValueType>
+                <TriggerLabel>Time to Full (min)</TriggerLabel>
+                <ControlPageLabel>To Full</ControlPageLabel>
+            </State>
+            <State id="discharge_mins">
+                <ValueType>Integer</ValueType>
+                <TriggerLabel>Time Remaining (min)</TriggerLabel>
+                <ControlPageLabel>Remaining</ControlPageLabel>
+            </State>
+
+            <!-- Temperatures -->
+            <State id="temp_dc_c">
+                <ValueType>Float</ValueType>
+                <TriggerLabel>DC Converter Temp (degC)</TriggerLabel>
+                <ControlPageLabel>DC Temp</ControlPageLabel>
+            </State>
+            <State id="temp_ac_c">
+                <ValueType>Float</ValueType>
+                <TriggerLabel>AC Converter Temp (degC)</TriggerLabel>
+                <ControlPageLabel>AC Temp</ControlPageLabel>
+            </State>
+
+            <!-- Control states -->
+            <State id="ac_out_en">
+                <ValueType>Boolean</ValueType>
+                <TriggerLabel>AC Output Enabled</TriggerLabel>
+                <ControlPageLabel>AC Output</ControlPageLabel>
+            </State>
+            <State id="dc_en">
+                <ValueType>Boolean</ValueType>
+                <TriggerLabel>DC Output Enabled</TriggerLabel>
+                <ControlPageLabel>DC Output</ControlPageLabel>
+            </State>
+            <State id="xboost_en">
+                <ValueType>Boolean</ValueType>
+                <TriggerLabel>XBoost Enabled</TriggerLabel>
+                <ControlPageLabel>XBoost</ControlPageLabel>
+            </State>
+            <State id="max_charge_soc">
+                <ValueType>Integer</ValueType>
+                <TriggerLabel>Max Charge Level (%)</TriggerLabel>
+                <ControlPageLabel>Charge Limit</ControlPageLabel>
+            </State>
+            <State id="min_discharge_soc">
+                <ValueType>Integer</ValueType>
+                <TriggerLabel>Min Discharge Level (%)</TriggerLabel>
+                <ControlPageLabel>Discharge Floor</ControlPageLabel>
+            </State>
+            <State id="ac_charging_w">
+                <ValueType>Integer</ValueType>
+                <TriggerLabel>AC Charging Power (W)</TriggerLabel>
+                <ControlPageLabel>Charge Rate</ControlPageLabel>
+            </State>
+
+            <!-- Plugin metadata -->
+            <State id="deviceOnline">
+                <ValueType>Boolean</ValueType>
+                <TriggerLabel>Device Online</TriggerLabel>
+                <ControlPageLabel>Online</ControlPageLabel>
+            </State>
+            <State id="lastUpdate">
+                <ValueType>String</ValueType>
+                <TriggerLabel>Last Update</TriggerLabel>
+                <ControlPageLabel>Last Update</ControlPageLabel>
+            </State>
+        </States>
+    </Device>
+
+</Devices>
