@@ -173,6 +173,161 @@
                 <ControlPageLabel>Charge Rate</ControlPageLabel>
             </State>
 
+            <!-- v1.1 additions: extra power-flow ports -->
+            <State id="typec2_w">
+                <ValueType>Integer</ValueType>
+                <TriggerLabel>USB-C 2 Output (W)</TriggerLabel>
+                <ControlPageLabel>USB-C 2</ControlPageLabel>
+            </State>
+            <State id="dcp_w">
+                <ValueType>Integer</ValueType>
+                <TriggerLabel>DC Port Output (W)</TriggerLabel>
+                <ControlPageLabel>DC Port</ControlPageLabel>
+            </State>
+            <State id="dcp2_w">
+                <ValueType>Integer</ValueType>
+                <TriggerLabel>DC Port 2 Output (W)</TriggerLabel>
+                <ControlPageLabel>DC Port 2</ControlPageLabel>
+            </State>
+            <State id="bms_w">
+                <ValueType>Integer</ValueType>
+                <TriggerLabel>BMS Power (W)</TriggerLabel>
+                <ControlPageLabel>BMS Power</ControlPageLabel>
+            </State>
+
+            <!-- v1.1 additions: cumulative energy counters -->
+            <State id="ac_out_energy_wh">
+                <ValueType>Integer</ValueType>
+                <TriggerLabel>AC Output Energy Total (Wh)</TriggerLabel>
+                <ControlPageLabel>AC Out Energy</ControlPageLabel>
+            </State>
+            <State id="ac_in_energy_wh">
+                <ValueType>Integer</ValueType>
+                <TriggerLabel>AC Input Energy Total (Wh)</TriggerLabel>
+                <ControlPageLabel>AC In Energy</ControlPageLabel>
+            </State>
+            <State id="pv_in_energy_wh">
+                <ValueType>Integer</ValueType>
+                <TriggerLabel>Solar Input Energy Total (Wh)</TriggerLabel>
+                <ControlPageLabel>Solar Energy</ControlPageLabel>
+            </State>
+            <State id="dc12v_out_energy_wh">
+                <ValueType>Integer</ValueType>
+                <TriggerLabel>12V DC Output Energy Total (Wh)</TriggerLabel>
+                <ControlPageLabel>DC Out Energy</ControlPageLabel>
+            </State>
+            <State id="typec_out_energy_wh">
+                <ValueType>Integer</ValueType>
+                <TriggerLabel>USB-C Output Energy Total (Wh)</TriggerLabel>
+                <ControlPageLabel>USB-C Energy</ControlPageLabel>
+            </State>
+            <State id="usba_out_energy_wh">
+                <ValueType>Integer</ValueType>
+                <TriggerLabel>USB-A Output Energy Total (Wh)</TriggerLabel>
+                <ControlPageLabel>USB-A Energy</ControlPageLabel>
+            </State>
+            <State id="dev_work_seconds">
+                <ValueType>Integer</ValueType>
+                <TriggerLabel>Device Working Time (s)</TriggerLabel>
+                <ControlPageLabel>Working Time</ControlPageLabel>
+            </State>
+
+            <!-- v1.1 additions: thermal / diagnostics -->
+            <State id="fan_level">
+                <ValueType>Integer</ValueType>
+                <TriggerLabel>Fan Level</TriggerLabel>
+                <ControlPageLabel>Fan Level</ControlPageLabel>
+            </State>
+            <State id="ac_out_freq_hz">
+                <ValueType>Integer</ValueType>
+                <TriggerLabel>AC Output Frequency (Hz)</TriggerLabel>
+                <ControlPageLabel>AC Frequency</ControlPageLabel>
+            </State>
+            <State id="sleep_state">
+                <ValueType>Integer</ValueType>
+                <TriggerLabel>Sleep State</TriggerLabel>
+                <ControlPageLabel>Sleep State</ControlPageLabel>
+            </State>
+            <State id="low_power_alarm">
+                <ValueType>Boolean</ValueType>
+                <TriggerLabel>Low Power Alarm</TriggerLabel>
+                <ControlPageLabel>Low Power Alarm</ControlPageLabel>
+            </State>
+            <State id="error_code">
+                <ValueType>Integer</ValueType>
+                <TriggerLabel>Error Code</TriggerLabel>
+                <ControlPageLabel>Error Code</ControlPageLabel>
+            </State>
+            <State id="bms_error_code">
+                <ValueType>Integer</ValueType>
+                <TriggerLabel>BMS Error Code</TriggerLabel>
+                <ControlPageLabel>BMS Error</ControlPageLabel>
+            </State>
+            <State id="pd_error_code">
+                <ValueType>Integer</ValueType>
+                <TriggerLabel>PD Error Code</TriggerLabel>
+                <ControlPageLabel>PD Error</ControlPageLabel>
+            </State>
+            <State id="mppt_error_code">
+                <ValueType>Integer</ValueType>
+                <TriggerLabel>MPPT Error Code</TriggerLabel>
+                <ControlPageLabel>MPPT Error</ControlPageLabel>
+            </State>
+            <State id="inverter_error_code">
+                <ValueType>Integer</ValueType>
+                <TriggerLabel>Inverter Error Code</TriggerLabel>
+                <ControlPageLabel>Inverter Error</ControlPageLabel>
+            </State>
+
+            <!-- v1.1 additions: settings telemetry -->
+            <State id="buzzer_on">
+                <ValueType>Boolean</ValueType>
+                <TriggerLabel>Buzzer Enabled</TriggerLabel>
+                <ControlPageLabel>Buzzer</ControlPageLabel>
+            </State>
+            <State id="screen_off_secs">
+                <ValueType>Integer</ValueType>
+                <TriggerLabel>Screen Timeout (s)</TriggerLabel>
+                <ControlPageLabel>Screen Timeout</ControlPageLabel>
+            </State>
+            <State id="ac_standby_secs">
+                <ValueType>Integer</ValueType>
+                <TriggerLabel>AC Standby Timer (s)</TriggerLabel>
+                <ControlPageLabel>AC Standby</ControlPageLabel>
+            </State>
+            <State id="dev_standby_secs">
+                <ValueType>Integer</ValueType>
+                <TriggerLabel>Device Standby Timer (s)</TriggerLabel>
+                <ControlPageLabel>Device Standby</ControlPageLabel>
+            </State>
+
+            <!-- v1.1 additions: firmware versions -->
+            <State id="pd_firmware">
+                <ValueType>Integer</ValueType>
+                <TriggerLabel>PD Firmware</TriggerLabel>
+                <ControlPageLabel>PD Firmware</ControlPageLabel>
+            </State>
+            <State id="iot_firmware">
+                <ValueType>Integer</ValueType>
+                <TriggerLabel>IoT Firmware</TriggerLabel>
+                <ControlPageLabel>IoT Firmware</ControlPageLabel>
+            </State>
+            <State id="mppt_firmware">
+                <ValueType>Integer</ValueType>
+                <TriggerLabel>MPPT Firmware</TriggerLabel>
+                <ControlPageLabel>MPPT Firmware</ControlPageLabel>
+            </State>
+            <State id="inverter_firmware">
+                <ValueType>Integer</ValueType>
+                <TriggerLabel>Inverter Firmware</TriggerLabel>
+                <ControlPageLabel>Inverter Firmware</ControlPageLabel>
+            </State>
+            <State id="bms_firmware">
+                <ValueType>Integer</ValueType>
+                <TriggerLabel>BMS Firmware</TriggerLabel>
+                <ControlPageLabel>BMS Firmware</ControlPageLabel>
+            </State>
+
             <!-- Plugin metadata -->
             <State id="deviceOnline">
                 <ValueType>Boolean</ValueType>
@@ -363,6 +518,161 @@
                 <ValueType>Integer</ValueType>
                 <TriggerLabel>AC Charging Power (W)</TriggerLabel>
                 <ControlPageLabel>Charge Rate</ControlPageLabel>
+            </State>
+
+            <!-- v1.1 additions: extra power-flow ports -->
+            <State id="typec2_w">
+                <ValueType>Integer</ValueType>
+                <TriggerLabel>USB-C 2 Output (W)</TriggerLabel>
+                <ControlPageLabel>USB-C 2</ControlPageLabel>
+            </State>
+            <State id="dcp_w">
+                <ValueType>Integer</ValueType>
+                <TriggerLabel>DC Port Output (W)</TriggerLabel>
+                <ControlPageLabel>DC Port</ControlPageLabel>
+            </State>
+            <State id="dcp2_w">
+                <ValueType>Integer</ValueType>
+                <TriggerLabel>DC Port 2 Output (W)</TriggerLabel>
+                <ControlPageLabel>DC Port 2</ControlPageLabel>
+            </State>
+            <State id="bms_w">
+                <ValueType>Integer</ValueType>
+                <TriggerLabel>BMS Power (W)</TriggerLabel>
+                <ControlPageLabel>BMS Power</ControlPageLabel>
+            </State>
+
+            <!-- v1.1 additions: cumulative energy counters -->
+            <State id="ac_out_energy_wh">
+                <ValueType>Integer</ValueType>
+                <TriggerLabel>AC Output Energy Total (Wh)</TriggerLabel>
+                <ControlPageLabel>AC Out Energy</ControlPageLabel>
+            </State>
+            <State id="ac_in_energy_wh">
+                <ValueType>Integer</ValueType>
+                <TriggerLabel>AC Input Energy Total (Wh)</TriggerLabel>
+                <ControlPageLabel>AC In Energy</ControlPageLabel>
+            </State>
+            <State id="pv_in_energy_wh">
+                <ValueType>Integer</ValueType>
+                <TriggerLabel>Solar Input Energy Total (Wh)</TriggerLabel>
+                <ControlPageLabel>Solar Energy</ControlPageLabel>
+            </State>
+            <State id="dc12v_out_energy_wh">
+                <ValueType>Integer</ValueType>
+                <TriggerLabel>12V DC Output Energy Total (Wh)</TriggerLabel>
+                <ControlPageLabel>DC Out Energy</ControlPageLabel>
+            </State>
+            <State id="typec_out_energy_wh">
+                <ValueType>Integer</ValueType>
+                <TriggerLabel>USB-C Output Energy Total (Wh)</TriggerLabel>
+                <ControlPageLabel>USB-C Energy</ControlPageLabel>
+            </State>
+            <State id="usba_out_energy_wh">
+                <ValueType>Integer</ValueType>
+                <TriggerLabel>USB-A Output Energy Total (Wh)</TriggerLabel>
+                <ControlPageLabel>USB-A Energy</ControlPageLabel>
+            </State>
+            <State id="dev_work_seconds">
+                <ValueType>Integer</ValueType>
+                <TriggerLabel>Device Working Time (s)</TriggerLabel>
+                <ControlPageLabel>Working Time</ControlPageLabel>
+            </State>
+
+            <!-- v1.1 additions: thermal / diagnostics -->
+            <State id="fan_level">
+                <ValueType>Integer</ValueType>
+                <TriggerLabel>Fan Level</TriggerLabel>
+                <ControlPageLabel>Fan Level</ControlPageLabel>
+            </State>
+            <State id="ac_out_freq_hz">
+                <ValueType>Integer</ValueType>
+                <TriggerLabel>AC Output Frequency (Hz)</TriggerLabel>
+                <ControlPageLabel>AC Frequency</ControlPageLabel>
+            </State>
+            <State id="sleep_state">
+                <ValueType>Integer</ValueType>
+                <TriggerLabel>Sleep State</TriggerLabel>
+                <ControlPageLabel>Sleep State</ControlPageLabel>
+            </State>
+            <State id="low_power_alarm">
+                <ValueType>Boolean</ValueType>
+                <TriggerLabel>Low Power Alarm</TriggerLabel>
+                <ControlPageLabel>Low Power Alarm</ControlPageLabel>
+            </State>
+            <State id="error_code">
+                <ValueType>Integer</ValueType>
+                <TriggerLabel>Error Code</TriggerLabel>
+                <ControlPageLabel>Error Code</ControlPageLabel>
+            </State>
+            <State id="bms_error_code">
+                <ValueType>Integer</ValueType>
+                <TriggerLabel>BMS Error Code</TriggerLabel>
+                <ControlPageLabel>BMS Error</ControlPageLabel>
+            </State>
+            <State id="pd_error_code">
+                <ValueType>Integer</ValueType>
+                <TriggerLabel>PD Error Code</TriggerLabel>
+                <ControlPageLabel>PD Error</ControlPageLabel>
+            </State>
+            <State id="mppt_error_code">
+                <ValueType>Integer</ValueType>
+                <TriggerLabel>MPPT Error Code</TriggerLabel>
+                <ControlPageLabel>MPPT Error</ControlPageLabel>
+            </State>
+            <State id="inverter_error_code">
+                <ValueType>Integer</ValueType>
+                <TriggerLabel>Inverter Error Code</TriggerLabel>
+                <ControlPageLabel>Inverter Error</ControlPageLabel>
+            </State>
+
+            <!-- v1.1 additions: settings telemetry -->
+            <State id="buzzer_on">
+                <ValueType>Boolean</ValueType>
+                <TriggerLabel>Buzzer Enabled</TriggerLabel>
+                <ControlPageLabel>Buzzer</ControlPageLabel>
+            </State>
+            <State id="screen_off_secs">
+                <ValueType>Integer</ValueType>
+                <TriggerLabel>Screen Timeout (s)</TriggerLabel>
+                <ControlPageLabel>Screen Timeout</ControlPageLabel>
+            </State>
+            <State id="ac_standby_secs">
+                <ValueType>Integer</ValueType>
+                <TriggerLabel>AC Standby Timer (s)</TriggerLabel>
+                <ControlPageLabel>AC Standby</ControlPageLabel>
+            </State>
+            <State id="dev_standby_secs">
+                <ValueType>Integer</ValueType>
+                <TriggerLabel>Device Standby Timer (s)</TriggerLabel>
+                <ControlPageLabel>Device Standby</ControlPageLabel>
+            </State>
+
+            <!-- v1.1 additions: firmware versions -->
+            <State id="pd_firmware">
+                <ValueType>Integer</ValueType>
+                <TriggerLabel>PD Firmware</TriggerLabel>
+                <ControlPageLabel>PD Firmware</ControlPageLabel>
+            </State>
+            <State id="iot_firmware">
+                <ValueType>Integer</ValueType>
+                <TriggerLabel>IoT Firmware</TriggerLabel>
+                <ControlPageLabel>IoT Firmware</ControlPageLabel>
+            </State>
+            <State id="mppt_firmware">
+                <ValueType>Integer</ValueType>
+                <TriggerLabel>MPPT Firmware</TriggerLabel>
+                <ControlPageLabel>MPPT Firmware</ControlPageLabel>
+            </State>
+            <State id="inverter_firmware">
+                <ValueType>Integer</ValueType>
+                <TriggerLabel>Inverter Firmware</TriggerLabel>
+                <ControlPageLabel>Inverter Firmware</ControlPageLabel>
+            </State>
+            <State id="bms_firmware">
+                <ValueType>Integer</ValueType>
+                <TriggerLabel>BMS Firmware</TriggerLabel>
+                <ControlPageLabel>BMS Firmware</ControlPageLabel>
             </State>
 
             <!-- Plugin metadata -->

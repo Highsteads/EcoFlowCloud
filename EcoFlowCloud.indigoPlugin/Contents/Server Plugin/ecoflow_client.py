@@ -3,8 +3,8 @@
 # Filename:    ecoflow_client.py
 # Description: EcoFlow cloud authentication and MQTT client for Indigo plugin
 # Author:      CliveS & Claude Sonnet 4.6
-# Date:        31-03-2026
-# Version:     1.0
+# Date:        11-05-2026
+# Version:     1.1
 
 import base64
 import json
@@ -23,8 +23,10 @@ if os.path.isdir(_pkg_path) and _pkg_path not in sys.path:
 
 import paho.mqtt.client as mqtt
 
-# Protobuf modules live in the same folder as this file
-_here = os.getcwd()
+# Protobuf modules live in the same folder as this file. Use __file__-based
+# discovery rather than os.getcwd() — cwd is not guaranteed to be Server Plugin/
+# in every invocation (set commands run on the MQTT thread).
+_here = os.path.dirname(os.path.abspath(__file__))
 if _here not in sys.path:
     sys.path.insert(0, _here)
 
@@ -84,6 +86,7 @@ COMMON_FIELD_MAP = {
     "bms_max_cell_temp":    ("cell_temp_max_c",    float, "{v:.1f} C"),
     "cycles":               ("cycles",             int,   "{v}"),
     "bms_chg_dsg_state":    ("charging_state",     None,  None),  # special: enum
+    "cms_chg_dsg_state":    ("charging_state",     None,  None),  # Delta3 alt
     # Power
     "pow_in_sum_w":         ("power_in_w",         int,   "{v} W"),
     "pow_out_sum_w":        ("power_out_w",        int,   "{v} W"),
@@ -92,25 +95,64 @@ COMMON_FIELD_MAP = {
     "pow_get_ac_out":       ("ac_out_w",           int,   "{v} W"),
     "pow_get_12v":          ("dc_12v_w",           int,   "{v} W"),
     "pow_get_typec1":       ("typec1_w",           int,   "{v} W"),
+    "pow_get_typec2":       ("typec2_w",           int,   "{v} W"),
     "pow_get_qcusb1":       ("usb1_w",             int,   "{v} W"),
     "pow_get_qcusb2":       ("usb2_w",             int,   "{v} W"),
-    # Time estimates
+    "pow_get_dcp":          ("dcp_w",              int,   "{v} W"),
+    "pow_get_dcp2":         ("dcp2_w",             int,   "{v} W"),
+    "pow_get_bms":          ("bms_w",              int,   "{v} W"),
+    # Time estimates — prefer cms_* over bms_* on Delta3 (last write wins;
+    # cms_* keys are listed after bms_* so they overwrite when both arrive)
     "bms_chg_rem_time":     ("charge_mins",        int,   "{v} min"),
     "bms_dsg_rem_time":     ("discharge_mins",     int,   "{v} min"),
-    "cms_chg_rem_time":     ("charge_mins",        int,   "{v} min"),  # Delta3 alt
+    "cms_chg_rem_time":     ("charge_mins",        int,   "{v} min"),
+    "cms_dsg_rem_time":     ("discharge_mins",     int,   "{v} min"),
     # Temperatures
     "temp_pcs_dc":          ("temp_dc_c",          float, "{v:.1f} C"),
     "temp_pcs_ac":          ("temp_ac_c",          float, "{v:.1f} C"),
+    "pcs_fan_level":        ("fan_level",          int,   "{v}"),
     # Control states (incoming telemetry)
     "ac_out_en":            ("ac_out_en",          bool,  None),
-    "dc_12v_en":            ("dc_en",              bool,  None),   # River3
-    "dc_en":                ("dc_en",              bool,  None),   # Delta3
+    "cfg_ac_out_open":      ("ac_out_en",          bool,  None),  # Delta3 telemetry alt
+    "dc_12v_en":            ("dc_en",              bool,  None),
+    "dc_en":                ("dc_en",              bool,  None),
+    "dc_out_open":          ("dc_en",              bool,  None),  # alt telemetry name
     "xboost_en":            ("xboost_en",          bool,  None),
     "bms_max_chg_soc":      ("max_charge_soc",     int,   "{v}%"),
     "bms_min_dsg_soc":      ("min_discharge_soc",  int,   "{v}%"),
-    "cms_max_chg_soc":      ("max_charge_soc",     int,   "{v}%"),  # Delta3
-    "cms_min_dsg_soc":      ("min_discharge_soc",  int,   "{v}%"),  # Delta3
+    "cms_max_chg_soc":      ("max_charge_soc",     int,   "{v}%"),
+    "cms_min_dsg_soc":      ("min_discharge_soc",  int,   "{v}%"),
     "ac_charging_power":    ("ac_charging_w",      int,   "{v} W"),
+    "plug_in_info_ac_in_chg_pow_max": ("ac_charging_w", int, "{v} W"),
+    # Settings telemetry
+    "en_beep":              ("buzzer_on",          bool,  None),
+    "screen_off_time":      ("screen_off_secs",    int,   "{v} s"),
+    "ac_standby_time":      ("ac_standby_secs",    int,   "{v} s"),
+    "dev_standby_time":     ("dev_standby_secs",   int,   "{v} s"),
+    # Diagnostics
+    "errcode":              ("error_code",         int,   "{v}"),
+    "bms_err_code":         ("bms_error_code",     int,   "{v}"),
+    "pd_err_code":          ("pd_error_code",      int,   "{v}"),
+    "mppt_err_code":        ("mppt_error_code",    int,   "{v}"),
+    "llc_inv_err_code":     ("inverter_error_code", int,  "{v}"),
+    "low_power_alarm":      ("low_power_alarm",    bool,  None),
+    "dev_sleep_state":      ("sleep_state",        int,   "{v}"),
+    "ac_out_freq":          ("ac_out_freq_hz",     int,   "{v} Hz"),
+    # Firmware versions (RuntimePropertyUpload)
+    "pd_firm_ver":          ("pd_firmware",        int,   "{v}"),
+    "iot_firm_ver":         ("iot_firmware",       int,   "{v}"),
+    "mppt_firm_ver":        ("mppt_firmware",      int,   "{v}"),
+    "llc_inv_firm_ver":     ("inverter_firmware",  int,   "{v}"),
+    "bms_firm_ver":         ("bms_firmware",       int,   "{v}"),
+    # Cumulative energy counters (populated by _extract_statistics —
+    # enum names from ef_*_pb2.*StatisticsObject, prefix stripped + lowercased)
+    "ac_out_energy":        ("ac_out_energy_wh",     int, "{v} Wh"),
+    "ac_in_energy":         ("ac_in_energy_wh",      int, "{v} Wh"),
+    "pv_in_energy":         ("pv_in_energy_wh",      int, "{v} Wh"),
+    "dc12v_out_energy":     ("dc12v_out_energy_wh",  int, "{v} Wh"),
+    "typec_out_energy":     ("typec_out_energy_wh",  int, "{v} Wh"),
+    "usba_out_energy":      ("usba_out_energy_wh",   int, "{v} Wh"),
+    "dev_work_time":        ("dev_work_seconds",     int, "{v} s"),
 }
 
 DELTA3_EXTRA_FIELD_MAP = {
@@ -120,24 +162,33 @@ DELTA3_EXTRA_FIELD_MAP = {
 # Merged map for Delta3
 DELTA3_FIELD_MAP = {**COMMON_FIELD_MAP, **DELTA3_EXTRA_FIELD_MAP}
 
-# Command field names per device type
-# These are the protobuf field names used for SET commands
+# Command field names per device type — the SetCommand protobuf field name
+# that an action_key maps to. Verified against ef_*_pb2.*SetCommand
+# descriptors on 11-05-2026 (v1.0 had the AC/DC/AC-charge mappings wrong:
+# ac_out_en / dc_en / ac_charging_power do not exist on SetCommand).
+_COMMON_CMD_FIELDS = {
+    "ac_out_en":          "cfg_ac_out_open",
+    "dc_en":              "cfg_dc12v_out_open",
+    "xboost_en":          "xboost_en",
+    "ac_charging_w":      "plug_in_info_ac_in_chg_pow_max",
+    "buzzer_on":          "en_beep",
+    "lcd_brightness":     "lcd_light",
+    "screen_off_secs":    "screen_off_time",
+    "dev_standby_secs":   "dev_standby_time",
+    "ac_standby_secs":    "ac_standby_time",
+    "dc_standby_secs":    "dc_standby_time",
+}
+
 CMD_FIELDS = {
     "ecoflowRiver3": {
-        "ac_out_en":          "ac_out_en",
-        "dc_en":              "dc_12v_en",
-        "xboost_en":          "xboost_en",
-        "max_charge_soc":     "bms_max_chg_soc",
-        "min_discharge_soc":  "bms_min_dsg_soc",
-        "ac_charging_w":      "ac_charging_power",
-    },
-    "ecoflowDelta3": {
-        "ac_out_en":          "ac_out_en",
-        "dc_en":              "dc_en",
-        "xboost_en":          "xboost_en",
+        **_COMMON_CMD_FIELDS,
         "max_charge_soc":     "cms_max_chg_soc",
         "min_discharge_soc":  "cms_min_dsg_soc",
-        "ac_charging_w":      "ac_charging_power",
+    },
+    "ecoflowDelta3": {
+        **_COMMON_CMD_FIELDS,
+        "max_charge_soc":     "cms_max_chg_soc",
+        "min_discharge_soc":  "cms_min_dsg_soc",
     },
 }
 
@@ -458,7 +509,8 @@ class EcoFlowClient:
                 msg = ef_river3_pb2.River3DisplayPropertyUpload()
                 msg.ParseFromString(pdata)
                 result = MessageToDict(msg, preserving_proto_field_name=True)
-                return _extract_statistics_river3(result)
+                return _extract_statistics(result, ef_river3_pb2,
+                                          "River3StatisticsObject")
             elif cmd_func == 254 and cmd_id == 22:
                 msg = ef_river3_pb2.River3RuntimePropertyUpload()
                 msg.ParseFromString(pdata)
@@ -516,21 +568,18 @@ class EcoFlowClient:
             return {}
 
     def _decode_delta3_pdata(self, pdata, cmd_func, cmd_id):
+        # Delta3 protobuf only exposes Display/Runtime upload classes —
+        # Delta3CMSStatus and Delta3BMSHeartbeatReport are not in the schema
+        # despite v1.0 referencing them (which silently fell through to {}).
         try:
             if cmd_func == 254 and cmd_id == 21:
                 msg = ef_delta3_pb2.Delta3DisplayPropertyUpload()
                 msg.ParseFromString(pdata)
-                return MessageToDict(msg, preserving_proto_field_name=True)
+                result = MessageToDict(msg, preserving_proto_field_name=True)
+                return _extract_statistics(result, ef_delta3_pb2,
+                                          "Delta3StatisticsObject")
             elif cmd_func == 254 and cmd_id == 22:
                 msg = ef_delta3_pb2.Delta3RuntimePropertyUpload()
-                msg.ParseFromString(pdata)
-                return MessageToDict(msg, preserving_proto_field_name=True)
-            elif cmd_func == 32 and cmd_id == 2:
-                msg = ef_delta3_pb2.Delta3CMSStatus()
-                msg.ParseFromString(pdata)
-                return MessageToDict(msg, preserving_proto_field_name=True)
-            elif (cmd_func, cmd_id) in DELTA3_BMS_HEARTBEAT or cmd_func not in (254,):
-                msg = ef_delta3_pb2.Delta3BMSHeartbeatReport()
                 msg.ParseFromString(pdata)
                 return MessageToDict(msg, preserving_proto_field_name=True)
         except Exception as exc:
@@ -627,28 +676,35 @@ def _flatten_dict(d, parent_key="", sep="_"):
     return dict(items)
 
 
-def _extract_statistics_river3(data):
+def _extract_statistics(data, proto_module, enum_name):
     """
-    Pull statistics fields out of display_statistics_sum.list_info
-    into top-level dict entries (energy totals etc.).
+    Pull display_statistics_sum.list_info entries up to top-level dict keys.
+
+    Each list_info item has {statistics_object: <enum>, statistics_content: <int>}.
+    The enum name is e.g. STATISTICS_OBJECT_WATTH_IN_TOTAL — we strip the prefix
+    and lowercase it to produce field-map-friendly keys like watth_in_total.
+
+    proto_module: ef_river3_pb2 or ef_delta3_pb2
+    enum_name:    "River3StatisticsObject" or "Delta3StatisticsObject"
     """
     try:
         stats_sum = data.get("display_statistics_sum", {})
         list_info = stats_sum.get("list_info", [])
+        enum_cls  = getattr(proto_module, enum_name, None)
         for item in list_info:
             stat_obj     = item.get("statistics_object") or item.get("statisticsObject")
             stat_content = item.get("statistics_content") or item.get("statisticsContent")
-            if stat_obj is not None and stat_content is not None:
-                if isinstance(stat_obj, str) and stat_obj.startswith("STATISTICS_OBJECT_"):
-                    field_name = stat_obj.replace("STATISTICS_OBJECT_", "").lower()
-                    data[field_name] = stat_content
-                elif isinstance(stat_obj, int):
-                    try:
-                        enum_name = ef_river3_pb2.River3StatisticsObject.Name(stat_obj)
-                        if enum_name.startswith("STATISTICS_OBJECT_"):
-                            data[enum_name.replace("STATISTICS_OBJECT_", "").lower()] = stat_content
-                    except (ValueError, AttributeError):
-                        pass
+            if stat_obj is None or stat_content is None:
+                continue
+            if isinstance(stat_obj, str) and stat_obj.startswith("STATISTICS_OBJECT_"):
+                data[stat_obj.replace("STATISTICS_OBJECT_", "").lower()] = stat_content
+            elif isinstance(stat_obj, int) and enum_cls is not None:
+                try:
+                    name = enum_cls.Name(stat_obj)
+                    if name.startswith("STATISTICS_OBJECT_"):
+                        data[name.replace("STATISTICS_OBJECT_", "").lower()] = stat_content
+                except (ValueError, AttributeError):
+                    pass
     except Exception:
         pass
     return data

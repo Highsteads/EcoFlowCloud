@@ -4,29 +4,54 @@
 # Description: EcoFlow Cloud Indigo plugin — River 3 and Delta 3 integration
 #              via EcoFlow private API + MQTT. Real-time monitoring and control.
 # Author:      CliveS & Claude Sonnet 4.6
-# Date:        31-03-2026
-# Version:     1.0
+# Date:        11-05-2026
+# Version:     1.1
+#
+# v1.1 (11-05-2026):
+# - CRITICAL FIX: corrected protobuf SetCommand field names — v1.0 had
+#   AC output / DC output / AC charging power / max-charge / min-discharge
+#   all mapped to fields that don't exist on the SetCommand message, so
+#   those actions silently failed at the build step. Only XBoost worked.
+# - Removed bogus class references in Delta3 decoder (Delta3CMSStatus and
+#   Delta3BMSHeartbeatReport are not in the protobuf schema).
+# - Generalised _extract_statistics to run for Delta3 as well as River3 so
+#   cumulative energy counters come through on both devices.
+# - Replaced os.getcwd()-based sys.path inserts with __file__-based
+#   resolution — robust across thread contexts.
+# - Removed unused threading.Lock.
+# - Failed action sends now log at ERROR (was WARNING).
+# - New states: firmware versions (pd/iot/mppt/inverter/bms), error codes
+#   (errcode/bms/pd/mppt/inverter), fan_level, ac_out_freq_hz, sleep_state,
+#   low_power_alarm, buzzer_on, screen_off_secs, ac_standby_secs,
+#   dev_standby_secs, ac_out_energy_wh, ac_in_energy_wh, pv_in_energy_wh,
+#   dc12v_out_energy_wh, typec_out_energy_wh, usba_out_energy_wh,
+#   dev_work_seconds, typec2_w, dcp_w, dcp2_w, bms_w.
+# - New actions: Set Buzzer, Set LCD Brightness, Set Screen Timeout,
+#   Set Device Standby Timer.
 
 import os
 import sys
 import time
-import threading
 from datetime import datetime
 
 import indigo
 
 # ---------------------------------------------------------------------------
-# sys.path setup — must happen before any local imports
+# sys.path setup — must happen before any local imports.
+# NOTE: __file__ is NOT defined for Indigo's main plugin.py (exec'd, not
+# imported), so we use os.getcwd() which Indigo sets to Server Plugin/ at
+# startup. Sub-modules like ecoflow_client.py have __file__ available and
+# use that more robust path.
 # ---------------------------------------------------------------------------
 
-_here = os.getcwd()   # Indigo sets cwd to Server Plugin/ at runtime
+_here = os.getcwd()
 if _here not in sys.path:
     sys.path.insert(0, _here)
 
 # Bundle packages path
-_pkg_path = os.path.join(_here, "..", "Packages")
+_pkg_path = os.path.abspath(os.path.join(_here, "..", "Packages"))
 if os.path.isdir(_pkg_path) and _pkg_path not in sys.path:
-    sys.path.insert(0, os.path.abspath(_pkg_path))
+    sys.path.insert(0, _pkg_path)
 
 # Startup banner
 try:
@@ -50,7 +75,9 @@ from ecoflow_client import EcoFlowClient, apply_field_map
 
 PLUGIN_ID      = "com.clives.indigoplugin.ecoflowcloud"
 PLUGIN_NAME    = "EcoFlow Cloud"
-PLUGIN_VERSION = "1.0"
+# Plugin version is the source-of-truth one in Info.plist; this constant is
+# only used in the startup banner fallback when log_startup_banner is missing.
+PLUGIN_VERSION = "1.1"
 
 VAR_FOLDER     = "EcoFlow"
 DEVICE_TYPES   = {"ecoflowRiver3", "ecoflowDelta3"}
@@ -86,7 +113,6 @@ class Plugin(indigo.PluginBase):
         self.last_seen        = {}   # {dev_id: float}  unix timestamp
         self._reconnect_at    = 0    # unix timestamp when next reconnect allowed
         self._var_folder_id   = None
-        self._lock            = threading.Lock()
 
         # Startup banner
         creds_ok = "Yes" if (self.email and self.password) else "No (check config)"
@@ -328,6 +354,30 @@ class Plugin(indigo.PluginBase):
         watts = int(action.props.get("charge_watts", 305))
         self._send_action(dev, "ac_charging_w", watts, f"AC charge rate -> {watts} W")
 
+    def actionSetBuzzer(self, action, dev=None, callerWaitingForResult=None):
+        dev = indigo.devices[action.deviceId]
+        state = action.props.get("buzzer_state", "on")
+        self._send_action(dev, "buzzer_on", 1 if state == "on" else 0,
+                          f"Buzzer -> {state}")
+
+    def actionSetLCDBrightness(self, action, dev=None, callerWaitingForResult=None):
+        dev = indigo.devices[action.deviceId]
+        level = max(0, min(100, int(action.props.get("brightness", 50))))
+        self._send_action(dev, "lcd_brightness", level,
+                          f"LCD brightness -> {level}")
+
+    def actionSetScreenTimeout(self, action, dev=None, callerWaitingForResult=None):
+        dev = indigo.devices[action.deviceId]
+        secs = max(0, int(action.props.get("screen_secs", 300)))
+        self._send_action(dev, "screen_off_secs", secs,
+                          f"Screen timeout -> {secs}s")
+
+    def actionSetDeviceStandby(self, action, dev=None, callerWaitingForResult=None):
+        dev = indigo.devices[action.deviceId]
+        secs = max(0, int(action.props.get("standby_secs", 0)))
+        self._send_action(dev, "dev_standby_secs", secs,
+                          f"Device standby -> {secs}s (0 = never)")
+
     def _send_action(self, dev, action_key, value, log_label):
         """Common action sender with validation."""
         if not dev.states.get("deviceOnline", False):
@@ -344,7 +394,7 @@ class Plugin(indigo.PluginBase):
         if ok:
             self.logger.info(f'[{dev.name}] {log_label}')
         else:
-            self.logger.warning(f'[{dev.name}] command send failed: {log_label}')
+            self.logger.error(f'[{dev.name}] command send FAILED: {log_label}')
 
     # ------------------------------------------------------------------
     # Menu callbacks
