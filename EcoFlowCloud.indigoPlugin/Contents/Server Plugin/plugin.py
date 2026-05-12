@@ -94,7 +94,7 @@ class Plugin(indigo.PluginBase):
     def __init__(self, pluginId, pluginDisplayName, pluginVersion, pluginPrefs):
         super().__init__(pluginId, pluginDisplayName, pluginVersion, pluginPrefs)
 
-        # Credentials — prefer secrets.py, fall back to PluginConfig
+        # Credentials — prefer IndigoSecrets.py, fall back to PluginConfig
         self.email    = ECOFLOW_EMAIL    or pluginPrefs.get("ecoflow_email", "").strip()
         self.password = ECOFLOW_PASSWORD or pluginPrefs.get("ecoflow_password", "").strip()
 
@@ -185,7 +185,7 @@ class Plugin(indigo.PluginBase):
     def getPrefsConfigUiValues(self):
         values = self.pluginPrefs
         errors = indigo.Dict()
-        # Pre-populate from secrets.py if pref is blank
+        # Pre-populate from IndigoSecrets.py if pref is blank
         if not values.get("ecoflow_email") and ECOFLOW_EMAIL:
             values["ecoflow_email"] = ECOFLOW_EMAIL
         if not values.get("ecoflow_password") and ECOFLOW_PASSWORD:
@@ -197,9 +197,9 @@ class Plugin(indigo.PluginBase):
         email    = ECOFLOW_EMAIL    or valuesDict.get("ecoflow_email", "").strip()
         password = ECOFLOW_PASSWORD or valuesDict.get("ecoflow_password", "").strip()
         if not email:
-            errors["ecoflow_email"] = "EcoFlow email is required (or set ECOFLOW_EMAIL in secrets.py)"
+            errors["ecoflow_email"] = "EcoFlow email is required (or set ECOFLOW_EMAIL in IndigoSecrets.py)"
         if not password:
-            errors["ecoflow_password"] = "EcoFlow password is required (or set ECOFLOW_PASSWORD in secrets.py)"
+            errors["ecoflow_password"] = "EcoFlow password is required (or set ECOFLOW_PASSWORD in IndigoSecrets.py)"
         if errors:
             return False, valuesDict, errors
         return True, valuesDict
