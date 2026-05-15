@@ -4,8 +4,16 @@
 # Description: EcoFlow Cloud Indigo plugin — River 3 and Delta 3 integration
 #              via EcoFlow private API + MQTT. Real-time monitoring and control.
 # Author:      CliveS & Claude Sonnet 4.6
-# Date:        11-05-2026
-# Version:     1.1
+# Date:        15-05-2026
+# Version:     1.2
+#
+# v1.2 (15-05-2026):
+# - Fix race condition in _set_var() that caused intermittent
+#   NameNotUniqueError warnings on every state mirror. Concurrent
+#   _mirror_states calls (one per device) could both miss a new
+#   variable in indigo.variables.iter() and both attempt to create
+#   it. Switched to direct indigo.variables[name] lookup and wrapped
+#   create() in try/except with a refresh-and-update fallback.
 #
 # v1.1 (11-05-2026):
 # - CRITICAL FIX: corrected protobuf SetCommand field names — v1.0 had
@@ -77,7 +85,7 @@ PLUGIN_ID      = "com.clives.indigoplugin.ecoflowcloud"
 PLUGIN_NAME    = "EcoFlow Cloud"
 # Plugin version is the source-of-truth one in Info.plist; this constant is
 # only used in the startup banner fallback when log_startup_banner is missing.
-PLUGIN_VERSION = "1.1"
+PLUGIN_VERSION = "1.2"
 
 VAR_FOLDER     = "EcoFlow"
 DEVICE_TYPES   = {"ecoflowRiver3", "ecoflowDelta3"}
@@ -94,7 +102,7 @@ class Plugin(indigo.PluginBase):
     def __init__(self, pluginId, pluginDisplayName, pluginVersion, pluginPrefs):
         super().__init__(pluginId, pluginDisplayName, pluginVersion, pluginPrefs)
 
-        # Credentials — prefer IndigoSecrets.py, fall back to PluginConfig
+        # Credentials — prefer secrets.py, fall back to PluginConfig
         self.email    = ECOFLOW_EMAIL    or pluginPrefs.get("ecoflow_email", "").strip()
         self.password = ECOFLOW_PASSWORD or pluginPrefs.get("ecoflow_password", "").strip()
 
@@ -185,7 +193,7 @@ class Plugin(indigo.PluginBase):
     def getPrefsConfigUiValues(self):
         values = self.pluginPrefs
         errors = indigo.Dict()
-        # Pre-populate from IndigoSecrets.py if pref is blank
+        # Pre-populate from secrets.py if pref is blank
         if not values.get("ecoflow_email") and ECOFLOW_EMAIL:
             values["ecoflow_email"] = ECOFLOW_EMAIL
         if not values.get("ecoflow_password") and ECOFLOW_PASSWORD:
@@ -197,9 +205,9 @@ class Plugin(indigo.PluginBase):
         email    = ECOFLOW_EMAIL    or valuesDict.get("ecoflow_email", "").strip()
         password = ECOFLOW_PASSWORD or valuesDict.get("ecoflow_password", "").strip()
         if not email:
-            errors["ecoflow_email"] = "EcoFlow email is required (or set ECOFLOW_EMAIL in IndigoSecrets.py)"
+            errors["ecoflow_email"] = "EcoFlow email is required (or set ECOFLOW_EMAIL in secrets.py)"
         if not password:
-            errors["ecoflow_password"] = "EcoFlow password is required (or set ECOFLOW_PASSWORD in IndigoSecrets.py)"
+            errors["ecoflow_password"] = "EcoFlow password is required (or set ECOFLOW_PASSWORD in secrets.py)"
         if errors:
             return False, valuesDict, errors
         return True, valuesDict
@@ -469,14 +477,26 @@ class Plugin(indigo.PluginBase):
         return folder.id
 
     def _set_var(self, name, folder_id, value):
-        # Try existing variable first
-        for var in indigo.variables.iter():
-            if var.name == name:
+        # Direct lookup — variable names are globally unique in Indigo.
+        try:
+            var = indigo.variables[name]
+            if var.value != value:
+                indigo.variable.updateValue(var.id, value)
+            return
+        except (KeyError, ValueError):
+            pass
+        # Create — wrap in try/except for race safety. Multiple devices
+        # can mirror concurrently; without a lock, two callers can both
+        # miss the lookup and both try to create the same new variable.
+        try:
+            indigo.variable.create(name, value=value, folder=folder_id)
+        except Exception as exc:
+            try:
+                var = indigo.variables[name]
                 if var.value != value:
                     indigo.variable.updateValue(var.id, value)
-                return
-        # Create new
-        indigo.variable.create(name, value=value, folder=folder_id)
+            except Exception:
+                self.logger.warning(f'_set_var: cannot set {name} = {value}: {exc}')
 
     # ------------------------------------------------------------------
     # Helpers
