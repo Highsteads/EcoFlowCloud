@@ -3,9 +3,13 @@
 # Filename:    plugin.py
 # Description: EcoFlow Cloud Indigo plugin — River 3 and Delta 3 integration
 #              via EcoFlow private API + MQTT. Real-time monitoring and control.
-# Author:      CliveS & Claude Sonnet 4.6
-# Date:        15-05-2026
-# Version:     1.2
+# Author:      CliveS & Claude Opus 4.7
+# Date:        23-05-2026
+# Version:     1.3
+#
+# v1.3 (23-05-2026): Millisecond timestamp [HH:MM:SS.mmm] prefix on every
+# log line via plugin_utils.install_timestamp_filter() — matches Device
+# Activity Monitor convention. New "Toggle Timestamps in Log" menu item.
 #
 # v1.2 (15-05-2026):
 # - Fix race condition in _set_var() that caused intermittent
@@ -66,6 +70,10 @@ try:
     from plugin_utils import log_startup_banner
 except ImportError:
     log_startup_banner = None
+try:
+    from plugin_utils import install_timestamp_filter
+except ImportError:
+    install_timestamp_filter = None
 
 # Secrets (optional — falls back to PluginConfig.xml)
 sys.path.insert(0, "/Library/Application Support/Perceptive Automation")
@@ -85,7 +93,7 @@ PLUGIN_ID      = "com.clives.indigoplugin.ecoflowcloud"
 PLUGIN_NAME    = "EcoFlow Cloud"
 # Plugin version is the source-of-truth one in Info.plist; this constant is
 # only used in the startup banner fallback when log_startup_banner is missing.
-PLUGIN_VERSION = "1.2"
+PLUGIN_VERSION = "1.3"
 
 VAR_FOLDER     = "EcoFlow"
 DEVICE_TYPES   = {"ecoflowRiver3", "ecoflowDelta3"}
@@ -121,6 +129,12 @@ class Plugin(indigo.PluginBase):
         self.last_seen        = {}   # {dev_id: float}  unix timestamp
         self._reconnect_at    = 0    # unix timestamp when next reconnect allowed
         self._var_folder_id   = None
+        self.timestamp_enabled = bool(pluginPrefs.get("timestampEnabled", True))
+
+        if install_timestamp_filter:
+            self._ts_filter = install_timestamp_filter(self, enabled=self.timestamp_enabled)
+        else:
+            self._ts_filter = None
 
         # Startup banner
         creds_ok = "Yes" if (self.email and self.password) else "No (check config)"
@@ -442,13 +456,25 @@ class Plugin(indigo.PluginBase):
 
     def showPluginInfo(self, valuesDict=None, typeId=None):
         creds_ok = "Yes" if (self.email and self.password) else "No (check config)"
+        extras = [
+            ("API Server:",        self.api_host),
+            ("Credentials:",       creds_ok),
+            ("Timestamps in Log:", "ON" if self.timestamp_enabled else "OFF"),
+        ]
         if log_startup_banner:
-            log_startup_banner(self.pluginId, self.pluginDisplayName, self.pluginVersion, extras=[
-                ("API Server:",  self.api_host),
-                ("Credentials:", creds_ok),
-            ])
+            log_startup_banner(self.pluginId, self.pluginDisplayName, self.pluginVersion, extras=extras)
         else:
             indigo.server.log(f"{self.pluginDisplayName} v{self.pluginVersion}")
+            for label, value in extras:
+                indigo.server.log(f"  {label} {value}")
+
+    def menuToggleTimestamps(self):
+        self.timestamp_enabled = not self.timestamp_enabled
+        self.pluginPrefs["timestampEnabled"] = self.timestamp_enabled
+        if self._ts_filter:
+            self._ts_filter.enabled = self.timestamp_enabled
+        state = "ON" if self.timestamp_enabled else "OFF"
+        indigo.server.log(f"[{self.pluginDisplayName}] Timestamps in Log -> {state}")
 
     # ------------------------------------------------------------------
     # Variable mirroring
