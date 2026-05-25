@@ -138,13 +138,7 @@ class Plugin(indigo.PluginBase):
 
         # Startup banner
         creds_ok = "Yes" if (self.email and self.password) else "No (check config)"
-        if log_startup_banner:
-            log_startup_banner(pluginId, pluginDisplayName, pluginVersion, extras=[
-                ("API Server:",    self.api_host),
-                ("Credentials:",   creds_ok),
-            ])
-        else:
-            indigo.server.log(f"{pluginDisplayName} v{pluginVersion} starting")
+        # Startup banner moved to showPluginInfo on demand (revised 25-May-2026 per Jay).
 
     # ------------------------------------------------------------------
     # Lifecycle
