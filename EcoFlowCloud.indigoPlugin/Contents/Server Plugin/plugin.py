@@ -5,7 +5,7 @@
 #              via EcoFlow private API + MQTT. Real-time monitoring and control.
 # Author:      CliveS & Claude Opus 4.7
 # Date:        23-05-2026
-# Version:     1.3
+# Version:     1.4
 #
 # v1.3 (23-05-2026): Millisecond timestamp [HH:MM:SS.mmm] prefix on every
 # log line via plugin_utils.install_timestamp_filter() — matches Device
@@ -93,7 +93,7 @@ PLUGIN_ID      = "com.clives.indigoplugin.ecoflowcloud"
 PLUGIN_NAME    = "EcoFlow Cloud"
 # Plugin version is the source-of-truth one in Info.plist; this constant is
 # only used in the startup banner fallback when log_startup_banner is missing.
-PLUGIN_VERSION = "1.3"
+PLUGIN_VERSION = "1.4"
 
 VAR_FOLDER     = "EcoFlow"
 DEVICE_TYPES   = {"ecoflowRiver3", "ecoflowDelta3"}
@@ -170,6 +170,15 @@ class Plugin(indigo.PluginBase):
     def deviceStopComm(self, dev):
         self.logger.debug(f"deviceStopComm: {dev.name}")
         self.last_seen.pop(dev.id, None)
+
+    @staticmethod
+    def didDeviceCommPropertyChange(oldDevice, newDevice):
+        """Restart comm only when the EcoFlow serial number changes.
+
+        serial_number is the MQTT topic identifier. mirror_to_variable is a
+        run-time setting that doesn't need a restart to take effect.
+        """
+        return oldDevice.pluginProps.get("serial_number") != newDevice.pluginProps.get("serial_number")
 
     def deviceUpdated(self, origDev, newDev):
         # Required for subscribeToChanges — not used here, but must be defined
