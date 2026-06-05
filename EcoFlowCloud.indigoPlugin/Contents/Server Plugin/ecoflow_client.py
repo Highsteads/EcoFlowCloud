@@ -735,8 +735,9 @@ def apply_field_map(flat_dict, device_type_id):
             continue
         state_id, cast, fmt = field_map[proto_field]
 
-        # charging_state: special enum mapping
-        if proto_field == "bms_chg_dsg_state":
+        # charging_state: special enum mapping (bms_* on most units, cms_* on Delta3 — both
+        # map to the "charging_state" state in field_map and share CHG_STATE_LABELS).
+        if proto_field in ("bms_chg_dsg_state", "cms_chg_dsg_state"):
             label = CHG_STATE_LABELS.get(int(v), "unknown")
             kv.append({"key": state_id, "value": label, "uiValue": label})
             mirror[state_id] = label

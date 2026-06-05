@@ -5,7 +5,7 @@
 #              via EcoFlow private API + MQTT. Real-time monitoring and control.
 # Author:      CliveS & Claude Opus 4.7
 # Date:        23-05-2026
-# Version:     1.4
+# Version:     1.5
 #
 # v1.3 (23-05-2026): Millisecond timestamp [HH:MM:SS.mmm] prefix on every
 # log line via plugin_utils.install_timestamp_filter() — matches Device
@@ -93,7 +93,7 @@ PLUGIN_ID      = "com.clives.indigoplugin.ecoflowcloud"
 PLUGIN_NAME    = "EcoFlow Cloud"
 # Plugin version is the source-of-truth one in Info.plist; this constant is
 # only used in the startup banner fallback when log_startup_banner is missing.
-PLUGIN_VERSION = "1.4"
+PLUGIN_VERSION = "1.5"
 
 VAR_FOLDER     = "EcoFlow"
 DEVICE_TYPES   = {"ecoflowRiver3", "ecoflowDelta3"}
@@ -175,8 +175,10 @@ class Plugin(indigo.PluginBase):
         return oldDevice.pluginProps.get("serial_number") != newDevice.pluginProps.get("serial_number")
 
     def deviceUpdated(self, origDev, newDev):
-        # Required for subscribeToChanges — not used here, but must be defined
-        pass
+        # Let the base class run the standard lifecycle — it consults
+        # didDeviceCommPropertyChange (above) to cycle comms when serial_number changes.
+        # A bare 'pass' here silently disabled that (and all enable/disable handling).
+        super().deviceUpdated(origDev, newDev)
 
     # ------------------------------------------------------------------
     # Plugin preferences updated
@@ -208,7 +210,7 @@ class Plugin(indigo.PluginBase):
                 self._connect_mqtt()
 
     def getPrefsConfigUiValues(self):
-        values = self.pluginPrefs
+        values = indigo.Dict(self.pluginPrefs)   # copy: mutating self.pluginPrefs here persists IndigoSecrets to disk
         errors = indigo.Dict()
         # Pre-populate from IndigoSecrets.py if pref is blank
         if not values.get("ecoflow_email") and ECOFLOW_EMAIL:
