@@ -28,3 +28,6 @@ secrets.py
 # Indigo runtime
 Contents/Packages/
 **/Contents/Packages/
+
+# Test runner artefacts
+.pytest_cache/

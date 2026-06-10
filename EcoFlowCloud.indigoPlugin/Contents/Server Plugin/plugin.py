@@ -4,8 +4,8 @@
 # Description: EcoFlow Cloud Indigo plugin — River 3 and Delta 3 integration
 #              via EcoFlow private API + MQTT. Real-time monitoring and control.
 # Author:      CliveS & Claude Opus 4.7
-# Date:        23-05-2026
-# Version:     1.5
+# Date:        10-06-2026
+# Version:     1.6
 #
 # v1.3 (23-05-2026): Millisecond timestamp [HH:MM:SS.mmm] prefix on every
 # log line via plugin_utils.install_timestamp_filter() — matches Device
@@ -93,7 +93,7 @@ PLUGIN_ID      = "com.clives.indigoplugin.ecoflowcloud"
 PLUGIN_NAME    = "EcoFlow Cloud"
 # Plugin version is the source-of-truth one in Info.plist; this constant is
 # only used in the startup banner fallback when log_startup_banner is missing.
-PLUGIN_VERSION = "1.5"
+PLUGIN_VERSION = "1.6"
 
 VAR_FOLDER     = "EcoFlow"
 DEVICE_TYPES   = {"ecoflowRiver3", "ecoflowDelta3"}
@@ -136,8 +136,6 @@ class Plugin(indigo.PluginBase):
         else:
             self._ts_filter = None
 
-        # Startup banner
-        creds_ok = "Yes" if (self.email and self.password) else "No (check config)"
         # Startup banner moved to showPluginInfo on demand (revised 25-May-2026 per Jay).
 
     # ------------------------------------------------------------------

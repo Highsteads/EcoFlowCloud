@@ -7,12 +7,10 @@
 # Version:     1.1
 
 import base64
-import json
 import os
 import random
 import ssl
 import sys
-import time
 
 import requests
 
