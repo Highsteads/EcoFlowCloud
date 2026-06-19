@@ -5,7 +5,10 @@
 #              via EcoFlow private API + MQTT. Real-time monitoring and control.
 # Author:      CliveS & Claude Opus 4.8
 # Date:        19-06-2026
-# Version:     1.7
+# Version:     1.8
+#
+# v1.8 (19-06-2026) — POLL_SECS 30 -> 10 for fresher readings (battery SoC, solar
+# and power flow now refresh every ~10s, matching the runConcurrentThread tick).
 #
 # v1.7 (19-06-2026) — FIX: plugin connected to MQTT but received no device data.
 # River 3 / Delta 3 (EcoFlow's protobuf line) do NOT stream passively — they only
@@ -107,13 +110,18 @@ PLUGIN_ID      = "com.clives.indigoplugin.ecoflowcloud"
 PLUGIN_NAME    = "EcoFlow Cloud"
 # Plugin version is the source-of-truth one in Info.plist; this constant is
 # only used in the startup banner fallback when log_startup_banner is missing.
-PLUGIN_VERSION = "1.7"
+PLUGIN_VERSION = "1.8"
 
 VAR_FOLDER     = "EcoFlow"
 DEVICE_TYPES   = {"ecoflowRiver3", "ecoflowDelta3"}
 STALE_SECS     = 600    # 10 minutes without a message → mark offline
 RECONNECT_SECS = 60     # seconds between reconnect attempts
-POLL_SECS      = 30     # how often to ask each device to push its latest data.
+POLL_SECS      = 10     # how often to ask each device to push its latest data.
+                        # Matches the runConcurrentThread tick (self.sleep(10)),
+                        # so this is effectively as fresh as the loop allows
+                        # without a finer tick. 3 devices x 2 cmd_ids = 6 tiny
+                        # publishes / 10s — trivial load, well under what the
+                        # EcoFlow app itself streams.
                         # River 3 / Delta 3 do NOT stream passively — they only
                         # publish to /app/device/property/<sn> in response to a
                         # quota "get" request (verified live 19-Jun-2026). Without

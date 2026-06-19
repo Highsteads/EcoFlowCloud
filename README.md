@@ -9,13 +9,19 @@ Indigo plugin: integrate EcoFlow portable power stations (Delta/River series) vi
 
 *Developed and tested on Indigo 2025.2 / Python 3.13. Older Indigo releases that meet the minimum API version above should also work — the API floor is what Indigo's plugin loader actually checks.*
 **Bundle ID:** `com.clives.indigoplugin.ecoflowcloud`
-**Version:** 1.7
+**Version:** 1.8
 
 ---
 
 ## Recent changes
 
-- **v1.7** — fixes the plugin connecting but then showing no live data. The River 3 and Delta 3 do not stream their readings on their own — they only send an update when they are asked for one, so the plugin sat on a silent connection and the figures slowly went stale until the next restart. It now asks each device for its latest readings the moment it connects and then every 30 seconds after, so battery level, solar input and power flow stay live. As a happy side effect, the estate watchdog no longer needs to restart the plugin every 12 hours.
+- **v1.8** — readings now refresh every 10 seconds instead of every 30, so battery level, solar input and power flow track close to real time.
+- **v1.7** — fixes the plugin connecting but then showing no live data. The River 3 and Delta 3 do not stream their readings on their own — they only send an update when they are asked for one, so the plugin sat on a silent connection and the figures slowly went stale until the next restart. It now asks each device for its latest readings the moment it connects and then on a short interval after, so battery level, solar input and power flow stay live. As a happy side effect, the estate watchdog no longer needs to restart the plugin every 12 hours.
+- **v1.6** — internal tidy-up only. Added automated code linting and a continuous-integration test gate so regressions are caught before release. No change to how the plugin behaves.
+- **v1.5** — three fixes from an estate-wide review. A device's serial-number change is now picked up properly (a lifecycle method had been accidentally disabled), the Configure dialog no longer writes your EcoFlow login back into the stored settings, and the Delta 3's charging/discharging state is reported correctly.
+- **v1.4** — changing a device's serial number now re-establishes communication straight away rather than needing a plugin restart.
+- **v1.3** — every log line now carries a millisecond timestamp, matching the other CliveS plugins.
+- **v1.2** — fixed an intermittent warning when mirroring device readings into Indigo variables, caused by two devices trying to create the same variable at once.
 
 ---
 
