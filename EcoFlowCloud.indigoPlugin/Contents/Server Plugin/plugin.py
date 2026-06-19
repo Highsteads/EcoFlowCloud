@@ -3,9 +3,23 @@
 # Filename:    plugin.py
 # Description: EcoFlow Cloud Indigo plugin — River 3 and Delta 3 integration
 #              via EcoFlow private API + MQTT. Real-time monitoring and control.
-# Author:      CliveS & Claude Opus 4.7
-# Date:        10-06-2026
-# Version:     1.6
+# Author:      CliveS & Claude Opus 4.8
+# Date:        19-06-2026
+# Version:     1.7
+#
+# v1.7 (19-06-2026) — FIX: plugin connected to MQTT but received no device data.
+# River 3 / Delta 3 (EcoFlow's protobuf line) do NOT stream passively — they only
+# publish to /app/device/property/<sn> in response to a quota "get" request. The
+# plugin subscribed and waited forever, so states froze at the last value, devices
+# read offline, and DeviceHealthMonitor restarted the plugin every 12h to no effect
+# (a restart re-subscribes but still pulls no data). Diagnosed live 19-Jun-2026 by
+# capturing the MQTT traffic: 26s of total silence on a fresh connection, then an
+# immediate full property burst the instant a get request was sent.
+# - NEW EcoFlowClient.request_quota(): sends a header-only get (cmd_func=254, empty
+#   pdata, cmd_id 21 display + 22 runtime) to /app/<userId>/<sn>/thing/property/get.
+# - Data is primed on connect and then polled every POLL_SECS (30s) from
+#   runConcurrentThread, so states stay live and lastSuccessfulComm keeps advancing
+#   (which stops the watchdog seeing the plugin as wedged).
 #
 # v1.3 (23-05-2026): Millisecond timestamp [HH:MM:SS.mmm] prefix on every
 # log line via plugin_utils.install_timestamp_filter() — matches Device
@@ -93,12 +107,19 @@ PLUGIN_ID      = "com.clives.indigoplugin.ecoflowcloud"
 PLUGIN_NAME    = "EcoFlow Cloud"
 # Plugin version is the source-of-truth one in Info.plist; this constant is
 # only used in the startup banner fallback when log_startup_banner is missing.
-PLUGIN_VERSION = "1.6"
+PLUGIN_VERSION = "1.7"
 
 VAR_FOLDER     = "EcoFlow"
 DEVICE_TYPES   = {"ecoflowRiver3", "ecoflowDelta3"}
 STALE_SECS     = 600    # 10 minutes without a message → mark offline
 RECONNECT_SECS = 60     # seconds between reconnect attempts
+POLL_SECS      = 30     # how often to ask each device to push its latest data.
+                        # River 3 / Delta 3 do NOT stream passively — they only
+                        # publish to /app/device/property/<sn> in response to a
+                        # quota "get" request (verified live 19-Jun-2026). Without
+                        # this active poll the plugin connects but receives nothing,
+                        # devices go stale, and the estate watchdog restarts the
+                        # plugin every 12h to no effect.
 
 
 # ---------------------------------------------------------------------------
@@ -128,6 +149,7 @@ class Plugin(indigo.PluginBase):
         self.client           = None
         self.last_seen        = {}   # {dev_id: float}  unix timestamp
         self._reconnect_at    = 0    # unix timestamp when next reconnect allowed
+        self._poll_at         = 0    # unix timestamp when next quota poll is due
         self._var_folder_id   = None
         self.timestamp_enabled = bool(pluginPrefs.get("timestampEnabled", True))
 
@@ -245,6 +267,14 @@ class Plugin(indigo.PluginBase):
                         self.logger.info("[EcoFlow] MQTT not connected — attempting reconnect")
                         self._connect_mqtt()
                         self._reconnect_at = now + RECONNECT_SECS
+
+                # Active quota poll — these devices only report when asked, so we
+                # request the latest property upload every POLL_SECS. This keeps
+                # the states live AND advances lastSuccessfulComm, so the estate
+                # watchdog no longer sees the plugin as wedged.
+                elif now >= self._poll_at:
+                    self.client.request_quota()
+                    self._poll_at = now + POLL_SECS
 
                 # Stale detection
                 for dev in indigo.devices.iter("self"):

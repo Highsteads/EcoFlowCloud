@@ -2,9 +2,13 @@
 # -*- coding: utf-8 -*-
 # Filename:    ecoflow_client.py
 # Description: EcoFlow cloud authentication and MQTT client for Indigo plugin
-# Author:      CliveS & Claude Sonnet 4.6
-# Date:        11-05-2026
-# Version:     1.1
+# Author:      CliveS & Claude Opus 4.8
+# Date:        19-06-2026
+# Version:     1.2
+#
+# v1.2 (19-06-2026): added request_quota()/_build_quota_request() — River 3 /
+# Delta 3 only push data in reply to a get request, so the plugin now polls
+# rather than waiting on a passive subscription. Prime-on-connect added too.
 
 import base64
 import os
@@ -401,6 +405,60 @@ class EcoFlowClient:
             self.logger.error(f"[EcoFlow] Command build/send error: {exc}")
             return False
 
+    def request_quota(self, serial=None):
+        """Ask device(s) to push their latest property uploads.
+
+        River 3 / Delta 3 (EcoFlow's protobuf line) do NOT stream passively —
+        they only publish to /app/device/property/<sn> in response to a quota
+        "get" request. We send a header-only message (cmd_func=254, empty pdata)
+        for cmd_id 21 (display properties) and 22 (runtime properties) to
+        /app/<userId>/<sn>/thing/property/get. Verified live 19-Jun-2026: a
+        single get triggers an immediate full property burst on the data topic.
+
+        serial=None polls every configured device.
+        """
+        if not _PROTO_OK or not self.connected or not self._mqtt:
+            return
+        targets = [serial] if serial else list(self._serial_to_type.keys())
+        for sn in targets:
+            device_type_id = self._serial_to_type.get(sn)
+            if not device_type_id:
+                continue
+            for cmd_id in (21, 22):
+                raw = self._build_quota_request(device_type_id, cmd_id)
+                if raw is None:
+                    continue
+                topic = f"/app/{self.user_id}/{sn}/thing/property/get"
+                try:
+                    self._mqtt.publish(topic, raw, qos=1)
+                except Exception as exc:
+                    self.logger.debug(f"[EcoFlow] quota request error for {sn}: {exc}")
+
+    def _build_quota_request(self, device_type_id, cmd_id):
+        """Build a header-only 'get' request (no pdata) for the given upload cmd_id."""
+        try:
+            if device_type_id == "ecoflowRiver3":
+                packet = ef_river3_pb2.River3SendHeaderMsg()
+            elif device_type_id == "ecoflowDelta3":
+                packet = ef_delta3_pb2.Delta3SendHeaderMsg()
+            else:
+                return None
+            message = packet.msg.add()
+            message.src      = 32
+            message.dest     = 2
+            message.d_src    = 1
+            message.d_dest   = 1
+            message.cmd_func = 254
+            message.cmd_id   = cmd_id
+            message.need_ack = 1
+            message.data_len = 0
+            message.seq      = 999900000 + random.randint(10000, 99999)
+            return packet.SerializeToString()
+        except Exception as exc:
+            self.logger.debug(f"[EcoFlow] quota request build error "
+                              f"({device_type_id},{cmd_id}): {exc}")
+            return None
+
     # ------------------------------------------------------------------
     # MQTT callbacks
     # ------------------------------------------------------------------
@@ -415,6 +473,9 @@ class EcoFlowClient:
                 topic = f"/app/device/property/{serial}"
                 client.subscribe(topic, qos=1)
                 self.logger.info(f"[EcoFlow] Subscribed to {topic}")
+
+            # Prime the data immediately — these devices stay silent until asked.
+            self.request_quota()
 
             self.on_connect_cb(True)
         else:
