@@ -3,8 +3,14 @@
 # Filename:    ecoflow_client.py
 # Description: EcoFlow cloud authentication and MQTT client for Indigo plugin
 # Author:      CliveS & Claude Opus 4.8
-# Date:        19-06-2026
-# Version:     1.2
+# Date:        04-07-2026
+# Version:     1.3
+#
+# v1.3 (04-07-2026): FIX battery capacity unit bug. The BMS reports remaining /
+# full / design capacity in mAh, but the plugin wrote those values straight into
+# the battery_remain_wh / battery_full_cap_wh / battery_design_wh states labelled
+# "Wh". A 572 Wh River 3 Max therefore read as "12800 Wh" and a 1024 Wh Delta 3
+# as "20000 Wh". Now converted with Wh = mAh * nominal_pack_V / 1000 per model.
 #
 # v1.2 (19-06-2026): added request_quota()/_build_quota_request() — River 3 /
 # Delta 3 only push data in reply to a get request, so the plugin now polls
@@ -71,6 +77,22 @@ DELTA3_BMS_HEARTBEAT = {
     (3, 50), (3, 51), (3, 52),
 }
 
+# Battery capacity: the BMS reports remaining / full / design capacity in mAh,
+# but the corresponding Indigo states are Wh. Convert with Wh = mAh * V / 1000,
+# using each model's NOMINAL pack voltage — nominal, not the live bms_batt_vol,
+# so the capacity figures stay stable across state of charge (the live voltage
+# would swing them by SoC and overstate at high charge).
+#   Delta 3   : 16S LFP -> 51.2 V  (20000 mAh -> 1024 Wh, matches nameplate)
+#   River 3 * : 14S LFP -> 44.8 V  (12800 mAh ->  573 Wh, matches River 3 Max)
+# The River nominal covers the whole River 3 family (base / Plus / Max) — they
+# share the pack voltage and differ only in mAh, so the BMS mAh does the rest.
+NOMINAL_PACK_V = {
+    "ecoflowDelta3": 51.2,
+    "ecoflowRiver3": 44.8,
+}
+_DEFAULT_PACK_V      = 44.8
+_CAPACITY_MAH_FIELDS = ("bms_remain_cap", "bms_full_cap", "bms_design_cap")
+
 # ---------------------------------------------------------------------------
 # Field maps: protobuf field name -> (indigo_state_id, python_type, ui_fmt)
 # ui_fmt: format string using {v}, or None for raw bool
@@ -80,9 +102,9 @@ COMMON_FIELD_MAP = {
     # Battery
     "bms_batt_soc":         ("battery_soc",       int,   "{v}%"),
     "bms_batt_soh":         ("battery_soh",        int,   "{v}%"),
-    "bms_remain_cap":       ("battery_remain_wh",  int,   "{v} Wh"),
-    "bms_full_cap":         ("battery_full_cap_wh",int,   "{v} Wh"),
-    "bms_design_cap":       ("battery_design_wh",  int,   "{v} Wh"),
+    "bms_remain_cap":       ("battery_remain_wh",  int,   "{v} Wh"),  # mAh in -> Wh (NOMINAL_PACK_V)
+    "bms_full_cap":         ("battery_full_cap_wh",int,   "{v} Wh"),  # mAh in -> Wh (NOMINAL_PACK_V)
+    "bms_design_cap":       ("battery_design_wh",  int,   "{v} Wh"),  # mAh in -> Wh (NOMINAL_PACK_V)
     "bms_batt_vol":         ("battery_voltage",    float, "{v:.2f} V"),
     "bms_min_cell_temp":    ("cell_temp_min_c",    float, "{v:.1f} C"),
     "bms_max_cell_temp":    ("cell_temp_max_c",    float, "{v:.1f} C"),
@@ -800,6 +822,19 @@ def apply_field_map(flat_dict, device_type_id):
             label = CHG_STATE_LABELS.get(int(v), "unknown")
             kv.append({"key": state_id, "value": label, "uiValue": label})
             mirror[state_id] = label
+            continue
+
+        # battery capacity: the BMS reports these three in mAh, but the states
+        # are Wh — convert with the per-model nominal pack voltage. (Not mirrored,
+        # matching the previous behaviour.)
+        if proto_field in _CAPACITY_MAH_FIELDS:
+            try:
+                v_nom = NOMINAL_PACK_V.get(device_type_id, _DEFAULT_PACK_V)
+                wh    = int(round(float(v) * v_nom / 1000.0))
+            except (ValueError, TypeError):
+                continue
+            ui = fmt.replace("{v}", str(wh)) if fmt else str(wh)
+            kv.append({"key": state_id, "value": wh, "uiValue": ui})
             continue
 
         # boolean fields

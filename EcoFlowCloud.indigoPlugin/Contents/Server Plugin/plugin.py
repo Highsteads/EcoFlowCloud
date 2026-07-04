@@ -4,8 +4,15 @@
 # Description: EcoFlow Cloud Indigo plugin — River 3 and Delta 3 integration
 #              via EcoFlow private API + MQTT. Real-time monitoring and control.
 # Author:      CliveS & Claude Opus 4.8
-# Date:        19-06-2026
-# Version:     1.8
+# Date:        04-07-2026
+# Version:     1.9
+#
+# v1.9 (04-07-2026) — FIX battery capacity states. ecoflow_client v1.3 converts
+# the BMS mAh capacity fields to Wh with the per-model nominal pack voltage, so
+# battery_remain_wh / full_cap_wh / design_wh finally read true Wh (River 3 Max
+# ~572 Wh, Delta 3 ~1024 Wh) instead of raw mAh (12800 / 20000). Also hardened:
+# every action / config int() coercion now falls back on a blank or non-numeric
+# field instead of raising (via _coerce_int).
 #
 # v1.8 (19-06-2026) — POLL_SECS 30 -> 10 for fresher readings (battery SoC, solar
 # and power flow now refresh every ~10s, matching the runConcurrentThread tick).
@@ -110,7 +117,7 @@ PLUGIN_ID      = "com.clives.indigoplugin.ecoflowcloud"
 PLUGIN_NAME    = "EcoFlow Cloud"
 # Plugin version is the source-of-truth one in Info.plist; this constant is
 # only used in the startup banner fallback when log_startup_banner is missing.
-PLUGIN_VERSION = "1.8"
+PLUGIN_VERSION = "1.9"
 
 VAR_FOLDER     = "EcoFlow"
 DEVICE_TYPES   = {"ecoflowRiver3", "ecoflowDelta3"}
@@ -151,7 +158,7 @@ class Plugin(indigo.PluginBase):
             self.api_host = raw_server
 
         # Logging level
-        self.indigo_log_handler.setLevel(int(pluginPrefs.get("logLevel", 20)))
+        self.indigo_log_handler.setLevel(_coerce_int(pluginPrefs.get("logLevel", 20), 20))
 
         # State tracking
         self.client           = None
@@ -220,7 +227,7 @@ class Plugin(indigo.PluginBase):
             new_host  = valuesDict.get("custom_api_host", "api-e.ecoflow.com").strip() \
                         if raw_srv == "custom" else raw_srv
 
-            self.indigo_log_handler.setLevel(int(valuesDict.get("logLevel", 20)))
+            self.indigo_log_handler.setLevel(_coerce_int(valuesDict.get("logLevel", 20), 20))
 
             creds_changed = (new_email != self.email or
                              new_pass  != self.password or
@@ -404,17 +411,17 @@ class Plugin(indigo.PluginBase):
 
     def actionSetMaxChargeSoc(self, action, dev=None, callerWaitingForResult=None):
         dev = indigo.devices[action.deviceId]
-        soc = int(action.props.get("max_soc", 100))
+        soc = _coerce_int(action.props.get("max_soc", 100), 100)
         self._send_action(dev, "max_charge_soc", soc, f"Max charge -> {soc}%")
 
     def actionSetMinDischargeSoc(self, action, dev=None, callerWaitingForResult=None):
         dev = indigo.devices[action.deviceId]
-        soc = int(action.props.get("min_soc", 0))
+        soc = _coerce_int(action.props.get("min_soc", 0), 0)
         self._send_action(dev, "min_discharge_soc", soc, f"Min discharge -> {soc}%")
 
     def actionSetACChargingPower(self, action, dev=None, callerWaitingForResult=None):
         dev = indigo.devices[action.deviceId]
-        watts = int(action.props.get("charge_watts", 305))
+        watts = _coerce_int(action.props.get("charge_watts", 305), 305)
         self._send_action(dev, "ac_charging_w", watts, f"AC charge rate -> {watts} W")
 
     def actionSetBuzzer(self, action, dev=None, callerWaitingForResult=None):
@@ -425,19 +432,19 @@ class Plugin(indigo.PluginBase):
 
     def actionSetLCDBrightness(self, action, dev=None, callerWaitingForResult=None):
         dev = indigo.devices[action.deviceId]
-        level = max(0, min(100, int(action.props.get("brightness", 50))))
+        level = max(0, min(100, _coerce_int(action.props.get("brightness", 50), 50)))
         self._send_action(dev, "lcd_brightness", level,
                           f"LCD brightness -> {level}")
 
     def actionSetScreenTimeout(self, action, dev=None, callerWaitingForResult=None):
         dev = indigo.devices[action.deviceId]
-        secs = max(0, int(action.props.get("screen_secs", 300)))
+        secs = max(0, _coerce_int(action.props.get("screen_secs", 300), 300))
         self._send_action(dev, "screen_off_secs", secs,
                           f"Screen timeout -> {secs}s")
 
     def actionSetDeviceStandby(self, action, dev=None, callerWaitingForResult=None):
         dev = indigo.devices[action.deviceId]
-        secs = max(0, int(action.props.get("standby_secs", 0)))
+        secs = max(0, _coerce_int(action.props.get("standby_secs", 0), 0))
         self._send_action(dev, "dev_standby_secs", secs,
                           f"Device standby -> {secs}s (0 = never)")
 
@@ -586,3 +593,16 @@ def _sanitise_var_name(name):
     for c in name:
         out.append(c if c.isalnum() else "_")
     return "".join(out)
+
+
+def _coerce_int(value, default):
+    """int() a config / action-prop value that may be blank or non-numeric.
+
+    Indigo re-serialises textfield values as strings on dialog save, and a
+    cleared field arrives as "". int("") raises ValueError and would abort the
+    action (or startup, for logLevel). Fall back to the default instead.
+    """
+    try:
+        return int(value)
+    except (ValueError, TypeError):
+        return default

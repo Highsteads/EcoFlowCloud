@@ -9,12 +9,13 @@ Indigo plugin: integrate EcoFlow portable power stations (Delta/River series) vi
 
 *Developed and tested on Indigo 2025.2 / Python 3.13. Older Indigo releases that meet the minimum API version above should also work — the API floor is what Indigo's plugin loader actually checks.*
 **Bundle ID:** `com.clives.indigoplugin.ecoflowcloud`
-**Version:** 1.8
+**Version:** 1.9
 
 ---
 
 ## Recent changes
 
+- **v1.9** — corrects the battery capacity readings. The Delta 3 and River 3 report their remaining, full and design capacity in milliamp-hours, but the plugin had been passing those figures straight through as watt-hours, so a 572 Wh River 3 Max read as "12800 Wh" and a 1024 Wh Delta 3 as "20000 Wh". They are now converted properly, so Battery Remaining, Full Capacity and Design Capacity all read in true watt-hours. The plugin is also a touch more robust — a blank or non-numeric value left in an action or a setting no longer stops that action from running.
 - **v1.8** — readings now refresh every 10 seconds instead of every 30, so battery level, solar input and power flow track close to real time.
 - **v1.7** — fixes the plugin connecting but then showing no live data. The River 3 and Delta 3 do not stream their readings on their own — they only send an update when they are asked for one, so the plugin sat on a silent connection and the figures slowly went stale until the next restart. It now asks each device for its latest readings the moment it connects and then on a short interval after, so battery level, solar input and power flow stay live. As a happy side effect, the estate watchdog no longer needs to restart the plugin every 12 hours.
 - **v1.6** — internal tidy-up only. Added automated code linting and a continuous-integration test gate so regressions are caught before release. No change to how the plugin behaves.
