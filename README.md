@@ -1,5 +1,11 @@
 # EcoFlow Cloud
 
+> **Retired, July 2026.** The power stations were sold and the plugin came off my Indigo
+> server on 6 July 2026, so nothing here is being run or watched any more. It worked well
+> while I had the hardware, and it was still working the day it came off. The repo stays up
+> as source for anyone who still has EcoFlow kit and wants a starting point, or a fork. Do
+> not expect fixes from me — I have nothing left to test them against.
+
 **Indigo home automation plugin.**
 
 Indigo plugin: integrate EcoFlow portable power stations (Delta/River series) via the EcoFlow cloud API — battery SOC, solar input, charging state and per-device controls
