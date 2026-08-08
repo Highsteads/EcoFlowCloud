@@ -5,7 +5,12 @@
 #              via EcoFlow private API + MQTT. Real-time monitoring and control.
 # Author:      CliveS & Claude Opus 4.8
 # Date:        04-07-2026
-# Version:     1.9
+# Version:     1.10
+#
+# v1.10 (08-08-2026): REQUIRED Info.plist KEY. `CFBundleURLTypes` was MISSING,
+# so the plugin had no support URL for its "About" menu item — one of the SIX
+# keys the official Developer's Guide lists as required. Found by an estate
+# check. No plugin logic changed.
 #
 # v1.9 (04-07-2026) — FIX battery capacity states. ecoflow_client v1.3 converts
 # the BMS mAh capacity fields to Wh with the per-model nominal pack voltage, so
