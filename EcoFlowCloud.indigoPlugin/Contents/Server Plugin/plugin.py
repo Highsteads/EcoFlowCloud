@@ -122,7 +122,7 @@ PLUGIN_ID      = "com.clives.indigoplugin.ecoflowcloud"
 PLUGIN_NAME    = "EcoFlow Cloud"
 # Plugin version is the source-of-truth one in Info.plist; this constant is
 # only used in the startup banner fallback when log_startup_banner is missing.
-PLUGIN_VERSION = "1.9"
+PLUGIN_VERSION = "1.10"
 
 VAR_FOLDER     = "EcoFlow"
 DEVICE_TYPES   = {"ecoflowRiver3", "ecoflowDelta3"}
