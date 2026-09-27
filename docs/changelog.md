@@ -7,6 +7,13 @@ nav_order: 9
 
 The newest version is at the top.
 
+## 1.11 — 27 September 2026
+
+- **A new power station is picked up straight away.** When you add a power station, switch one back on or change its serial number, the plugin starts listening for it as soon as you click Save. Before, it only listened for the power stations it knew about when it connected, so you had to choose **Reconnect to EcoFlow Cloud** first.
+- **`IndigoSecrets.py` can hold just one of the two EcoFlow lines.** The plugin used to ignore the file unless it held both the email and the password. It now reads each on its own and takes the other from the **Configure** window.
+- The blank `IndigoSecrets_example.py` inside the plugin now has the two EcoFlow lines, ready to fill in.
+- The plugin's author is shown as CliveS & Claude.
+
 ## 1.10 — 8 August 2026
 
 The **About** item in the Plugins menu opens this project's page. It went nowhere before. Nothing else changed.

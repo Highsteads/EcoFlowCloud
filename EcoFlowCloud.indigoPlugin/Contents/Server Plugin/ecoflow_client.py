@@ -2,9 +2,15 @@
 # -*- coding: utf-8 -*-
 # Filename:    ecoflow_client.py
 # Description: EcoFlow cloud authentication and MQTT client for Indigo plugin
-# Author:      CliveS & Claude Opus 4.8
-# Date:        04-07-2026
-# Version:     1.3
+# Author:      CliveS & Claude Opus 4.8, Claude Opus 5.5
+# Date:        27-09-2026
+# Version:     1.4
+#
+# v1.4 (27-09-2026): NEW set_devices(). The subscription was fixed at connect
+# time, so a power station added (or a serial number changed) while connected
+# was never listened to until "Reconnect to EcoFlow Cloud". set_devices() brings
+# the live subscription into line with the configured devices in place:
+# subscribes and polls new serials, unsubscribes ones no longer configured.
 #
 # v1.3 (04-07-2026): FIX battery capacity unit bug. The BMS reports remaining /
 # full / design capacity in mAh, but the plugin wrote those values straight into
@@ -380,6 +386,45 @@ class EcoFlowClient:
                 pass
             self._mqtt = None
         self.logger.info("[EcoFlow] MQTT disconnected")
+
+    def set_devices(self, serial_to_type):
+        """Bring the subscription into line with the configured devices.
+
+        serial_to_type: dict {serial_number: device_type_id}, the full set the
+        plugin should be listening for now. While connected, new serials are
+        subscribed and asked for their readings straight away, and serials no
+        longer configured are unsubscribed. While not connected, only the map
+        changes: _on_connect subscribes the whole map when the connection
+        comes up. Returns (added, removed) as lists of serials.
+        """
+        new_map = dict(serial_to_type)
+        old_map = self._serial_to_type
+        added   = [sn for sn in new_map if sn not in old_map]
+        removed = [sn for sn in old_map if sn not in new_map]
+        # Swap the whole dict (never mutate it) — the MQTT thread reads it.
+        self._serial_to_type = new_map
+
+        if not self.connected or not self._mqtt:
+            return added, removed
+
+        for sn in removed:
+            topic = f"/app/device/property/{sn}"
+            try:
+                self._mqtt.unsubscribe(topic)
+                self.logger.info(f"[EcoFlow] Unsubscribed from {topic}")
+            except Exception as exc:
+                self.logger.warning(f"[EcoFlow] Unsubscribe from {topic} failed: {exc}")
+        for sn in added:
+            topic = f"/app/device/property/{sn}"
+            try:
+                self._mqtt.subscribe(topic, qos=1)
+                self.logger.info(f"[EcoFlow] Subscribed to {topic}")
+            except Exception as exc:
+                self.logger.warning(f"[EcoFlow] Subscribe to {topic} failed: {exc}")
+                continue
+            # These devices stay silent until asked, so ask now.
+            self.request_quota(sn)
+        return added, removed
 
     def send_command(self, serial, device_type_id, action_key, value):
         """

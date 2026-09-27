@@ -3,9 +3,16 @@
 # Filename:    plugin.py
 # Description: EcoFlow Cloud Indigo plugin — River 3 and Delta 3 integration
 #              via EcoFlow private API + MQTT. Real-time monitoring and control.
-# Author:      CliveS & Claude Opus 4.8
-# Date:        04-07-2026
-# Version:     1.10
+# Author:      CliveS & Claude Opus 4.8, Claude Opus 5.5
+# Date:        27-09-2026
+# Version:     1.11
+#
+# v1.11 (27-09-2026): a power station added, or a serial number changed, while
+# the plugin is connected is now listened to at once — deviceStartComm brings
+# the MQTT subscription into line (EcoFlowClient.set_devices), so "Reconnect to
+# EcoFlow Cloud" is no longer needed. ECOFLOW_EMAIL / ECOFLOW_PASSWORD are read
+# from IndigoSecrets.py one key at a time, so a file holding only one of them
+# no longer loses both. Info.plist Author no longer names a model.
 #
 # v1.10 (08-08-2026): REQUIRED Info.plist KEY. `CFBundleURLTypes` was MISSING,
 # so the plugin had no support URL for its "About" menu item — one of the SIX
@@ -104,12 +111,16 @@ try:
 except ImportError:
     install_timestamp_filter = None
 
-# Secrets (optional — falls back to PluginConfig.xml)
+# Secrets (optional — falls back to PluginConfig.xml). Per-key try/except: a
+# file holding only one key must not blank the other.
 sys.path.insert(0, "/Library/Application Support/Perceptive Automation")
 try:
-    from IndigoSecrets import ECOFLOW_EMAIL, ECOFLOW_PASSWORD
+    from IndigoSecrets import ECOFLOW_EMAIL
 except ImportError:
-    ECOFLOW_EMAIL    = ""
+    ECOFLOW_EMAIL = ""
+try:
+    from IndigoSecrets import ECOFLOW_PASSWORD
+except ImportError:
     ECOFLOW_PASSWORD = ""
 
 from ecoflow_client import EcoFlowClient, apply_field_map
@@ -122,7 +133,7 @@ PLUGIN_ID      = "com.clives.indigoplugin.ecoflowcloud"
 PLUGIN_NAME    = "EcoFlow Cloud"
 # Plugin version is the source-of-truth one in Info.plist; this constant is
 # only used in the startup banner fallback when log_startup_banner is missing.
-PLUGIN_VERSION = "1.10"
+PLUGIN_VERSION = "1.11"
 
 VAR_FOLDER     = "EcoFlow"
 DEVICE_TYPES   = {"ecoflowRiver3", "ecoflowDelta3"}
@@ -200,6 +211,9 @@ class Plugin(indigo.PluginBase):
         self.last_seen[dev.id] = time.time()
         dev.updateStateOnServer("deviceOnline", False)
         dev.updateStateOnServer("lastUpdate", "")
+        # A device added, re-enabled or given a new serial while we are
+        # connected must be listened for now, not at the next reconnect.
+        self._sync_subscriptions(dev)
 
     def deviceStopComm(self, dev):
         self.logger.debug(f"deviceStopComm: {dev.name}")
@@ -319,15 +333,7 @@ class Plugin(indigo.PluginBase):
             self.logger.warning("[EcoFlow] No credentials configured — cannot connect")
             return
 
-        # Build serial → device_type map from configured Indigo devices
-        serial_to_type = {}
-        for dev in indigo.devices.iter("self"):
-            if not dev.enabled or not dev.configured:
-                continue
-            serial = dev.pluginProps.get("serial_number", "").strip()
-            if serial:
-                serial_to_type[serial] = dev.deviceTypeId
-
+        serial_to_type = self._configured_serials()
         if not serial_to_type:
             self.logger.info("[EcoFlow] No configured devices — MQTT not started")
             return
@@ -350,6 +356,42 @@ class Plugin(indigo.PluginBase):
         if not self.client.connect(serial_to_type):
             self.logger.error("[EcoFlow] MQTT connect failed — will retry")
             self.client = None
+
+    def _configured_serials(self):
+        """Serial -> device type map for every enabled, configured device."""
+        serial_to_type = {}
+        for dev in indigo.devices.iter("self"):
+            if not dev.enabled or not dev.configured:
+                continue
+            serial = dev.pluginProps.get("serial_number", "").strip()
+            if serial:
+                serial_to_type[serial] = dev.deviceTypeId
+        return serial_to_type
+
+    def _sync_subscriptions(self, started_dev=None):
+        """Make the live MQTT subscription match the configured devices.
+
+        Called from deviceStartComm, which Indigo runs when a device is added
+        or enabled and again when its serial number changes (see
+        didDeviceCommPropertyChange). With no client yet — no devices at the
+        last attempt, or sign-in failed — bring the next connect attempt
+        forward instead, since _connect_mqtt reads every device afresh.
+        """
+        serial = ""
+        if started_dev is not None:
+            serial = started_dev.pluginProps.get("serial_number", "").strip()
+        if self.client is None:
+            if serial:
+                self._reconnect_at = 0
+            return
+        serial_to_type = self._configured_serials()
+        if serial:
+            # The device being started counts even if the device list still
+            # shows its old props.
+            serial_to_type[serial] = started_dev.deviceTypeId
+        added, removed = self.client.set_devices(serial_to_type)
+        if added or removed:
+            self.logger.debug(f"[EcoFlow] Subscription updated: added {added}, removed {removed}")
 
     def _on_mqtt_connect(self, connected):
         """Called by paho-mqtt thread when connection state changes."""

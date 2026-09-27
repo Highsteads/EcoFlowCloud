@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
 	<key>Author</key>
-	<string>CliveS and Claude Sonnet 4.6</string>
+	<string>CliveS &amp; Claude</string>
 	<key>CFBundleDisplayName</key>
 	<string>EcoFlow Cloud</string>
 	<key>CFBundleIdentifier</key>
@@ -31,7 +31,7 @@
 	<key>IwsApiVersion</key>
 	<string>1.0.0</string>
 	<key>PluginVersion</key>
-	<string>1.10</string>
+	<string>1.11</string>
 	<key>ServerApiVersion</key>
 	<string>3.0</string>
 </dict>

@@ -27,13 +27,12 @@ The plugin tries again once a minute by itself.
 
 The plugin has nothing to listen for, because no power station has been added, or every one is disabled or has no serial number.
 
-- Add a power station as [Getting started](getting-started.md) shows, then choose **Plugins → EcoFlow Cloud → Reconnect to EcoFlow Cloud**.
+- Add a power station as [Getting started](getting-started.md) shows. The plugin connects within about 10 seconds of you saving it.
 
 ## A new power station never comes online
 
-The plugin was already connected when you added it, so it is not listening for it yet.
+The plugin starts listening for a power station as soon as you save it, so the cause is usually the serial number or the model.
 
-- Choose **Plugins → EcoFlow Cloud → Reconnect to EcoFlow Cloud**. Do the same after changing a serial number.
 - Check the **Serial Number** matches the one the EcoFlow app shows under **Device Info**, character for character.
 - Check you chose the right model, **EcoFlow River 3** or **EcoFlow Delta 3**, when you made the device.
 

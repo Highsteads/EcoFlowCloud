@@ -28,7 +28,11 @@
 #
 # HOW PLUGINS USE IT
 # Each plugin does: sys.path.insert(0, "/Library/Application Support/Perceptive Automation")
-# then: from IndigoSecrets import KEY_NAME
+# then imports each key with its own guard, so ONE missing key can't blank the others:
+#     try:
+#         from IndigoSecrets import KEY_NAME
+#     except ImportError:
+#         KEY_NAME = ""
 # If IndigoSecrets.py is missing or a key is absent, the plugin falls back to the
 # value entered in its own configuration dialog (Plugins → Plugin Name → Configure).
 #
@@ -91,6 +95,15 @@ OWM_API_KEY = ""
 # ============================
 EVOHOME_USER     = ""
 EVOHOME_PASSWORD = ""
+
+# ============================
+# EcoFlow (optional)
+# Required by: EcoFlow Cloud plugin (com.clives.indigoplugin.ecoflowcloud)
+# The email and password you sign in to the EcoFlow app with. Each is read on
+# its own: leave one blank and the plugin takes it from its Configure window.
+# ============================
+ECOFLOW_EMAIL    = ""
+ECOFLOW_PASSWORD = ""
 
 # ============================
 # Pushover (optional)

@@ -46,9 +46,9 @@ Add any other power stations the same way.
 
 ## 4. Connect
 
-Choose **Plugins → EcoFlow Cloud → Reconnect to EcoFlow Cloud**. The plugin signs in again and starts listening for every power station you have added.
+You do not need to do anything. As soon as you save a power station, the plugin starts listening for it and asks it for its readings. If this is your first power station, the plugin signs in to EcoFlow within about 10 seconds.
 
-The plugin only picks up the power stations that exist when it connects, so do this each time you add a power station or change a serial number.
+The same happens when you add another power station later or change a serial number.
 
 ## 5. Check it works
 

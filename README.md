@@ -2,7 +2,7 @@
 
 **Watch and control EcoFlow River 3 and Delta 3 power stations from Indigo, through your EcoFlow account.**
 
-**Version:** 1.10 | **Author:** CliveS & Claude | **Needs:** Indigo 2022.1 or later and an EcoFlow account
+**Version:** 1.11 | **Author:** CliveS & Claude | **Needs:** Indigo 2022.1 or later and an EcoFlow account
 
 **[Read the full guide](https://highsteads.github.io/EcoFlowCloud/)** — setting up, what everything means, and what to do when something goes wrong.
 
@@ -38,17 +38,17 @@ I ran it with my own Delta 3 and River 3 power stations until I sold them, and i
 
 1. Open **Plugins → EcoFlow Cloud → Configure**, fill in the **EcoFlow Email** and **EcoFlow Password** you use in the EcoFlow app, set **API Server** to your account's region, and click **Save**.
 2. Create a **New Device**, choose **EcoFlow Cloud** and the model, and type in the power station's **Serial Number**, which the EcoFlow app shows under **Device Info**.
-3. Choose **Plugins → EcoFlow Cloud → Reconnect to EcoFlow Cloud**, and within a few seconds the device should show **Device Online** and fill in its readings.
+3. Click **Save**. The plugin starts listening for the power station at once, and within a few seconds the device should show **Device Online** and fill in its readings.
 
 The [full guide](https://highsteads.github.io/EcoFlowCloud/) goes through each step, explains every reading and setting, and covers what to do if something does not work.
 
 ## What's new
 
+**v1.11** — A power station you add, or whose serial number you change, is picked up straight away. You no longer need **Reconnect to EcoFlow Cloud** for that. `IndigoSecrets.py` can hold just the EcoFlow email or just the password, and the blank copy inside the plugin now has both lines.
+
 **v1.10** — The **About** item in the Plugins menu opens this project's page. It went nowhere before. Nothing else changed.
 
 **v1.9** — Battery capacity reads in true watt-hours. It had been showing milliamp-hours, so a Delta 3 read 20000 Wh instead of about 1024 Wh. A blank value in an action or a setting no longer stops that action from running.
-
-**v1.8** — Readings refresh every 10 seconds instead of every 30.
 
 Every version is listed in the [version history](https://highsteads.github.io/EcoFlowCloud/changelog.html).
 

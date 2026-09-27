@@ -15,7 +15,7 @@ The River 3 and Delta 3 do not talk to anything on your home network. They talk 
 2. **It collects a separate key** from EcoFlow for EcoFlow's message service, which is how the power stations send their readings and receive commands.
 3. **It connects to that service** over an encrypted connection, and listens for each power station whose serial number you have given it.
 
-The plugin only listens for the power stations it knows about when it connects, which is why you choose **Reconnect to EcoFlow Cloud** after adding a power station or changing a serial number.
+When you add a power station, switch one back on or change a serial number, the plugin starts listening for it straight away, without dropping the connection for the others. It stops listening for a serial number you have changed.
 
 ## Asking every 10 seconds
 
@@ -39,4 +39,4 @@ The power stations report their battery capacity in milliamp-hours. The plugin t
 
 ## Your EcoFlow sign-in
 
-The plugin reads your email and password from the shared `IndigoSecrets.py` file if you have one, otherwise from its **Configure** window. Where both have a value, the file wins. The [Settings](settings.md) page explains the file.
+The plugin reads your email and password from the shared `IndigoSecrets.py` file if you have one, otherwise from its **Configure** window. It looks for each on its own, so the file can hold just one of them and the other comes from the window. Where both have a value, the file wins. The [Settings](settings.md) page explains the file.
