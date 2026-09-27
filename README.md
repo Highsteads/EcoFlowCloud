@@ -1,99 +1,56 @@
-# EcoFlow Cloud
+# EcoFlow Cloud for Indigo
 
-> **Retired, July 2026.** The power stations were sold and the plugin came off my Indigo
-> server on 6 July 2026, so nothing here is being run or watched any more. It worked well
-> while I had the hardware, and it was still working the day it came off. The repo stays up
-> as source for anyone who still has EcoFlow kit and wants a starting point, or a fork. Do
-> not expect fixes from me — I have nothing left to test them against.
+**Watch and control EcoFlow River 3 and Delta 3 power stations from Indigo, through your EcoFlow account.**
 
-**Indigo home automation plugin.**
+**Version:** 1.10 | **Author:** CliveS & Claude | **Needs:** Indigo 2022.1 or later and an EcoFlow account
 
-Indigo plugin: integrate EcoFlow portable power stations (Delta/River series) via the EcoFlow cloud API — battery SOC, solar input, charging state and per-device controls
-
-**Author:** CliveS & Claude Sonnet 4.6
-**Platform:** Indigo 2022.1 or later, macOS (Python 3.10+ bundled with Indigo)
-
-*Developed and tested on Indigo 2025.2 / Python 3.13. Older Indigo releases that meet the minimum API version above should also work — the API floor is what Indigo's plugin loader actually checks.*
-**Bundle ID:** `com.clives.indigoplugin.ecoflowcloud`
-**Version:** 1.10
+**[Read the full guide](https://highsteads.github.io/EcoFlowCloud/)** — setting up, what everything means, and what to do when something goes wrong.
 
 ---
 
-## Recent changes
+## What it does
 
-**v1.10** — **Added the missing support link.** Every Indigo plugin is meant to carry a web address inside its bundle — it is what the "About" item in the Plugins menu opens. This one had no address at all, so that menu item went nowhere. It now points at this repository. Nothing else changed.
-- **v1.9** — corrects the battery capacity readings. The Delta 3 and River 3 report their remaining, full and design capacity in milliamp-hours, but the plugin had been passing those figures straight through as watt-hours, so a 572 Wh River 3 Max read as "12800 Wh" and a 1024 Wh Delta 3 as "20000 Wh". They are now converted properly, so Battery Remaining, Full Capacity and Design Capacity all read in true watt-hours. The plugin is also a touch more robust — a blank or non-numeric value left in an action or a setting no longer stops that action from running.
-- **v1.8** — readings now refresh every 10 seconds instead of every 30, so battery level, solar input and power flow track close to real time.
-- **v1.7** — fixes the plugin connecting but then showing no live data. The River 3 and Delta 3 do not stream their readings on their own — they only send an update when they are asked for one, so the plugin sat on a silent connection and the figures slowly went stale until the next restart. It now asks each device for its latest readings the moment it connects and then on a short interval after, so battery level, solar input and power flow stay live. As a happy side effect, the estate watchdog no longer needs to restart the plugin every 12 hours.
-- **v1.6** — internal tidy-up only. Added automated code linting and a continuous-integration test gate so regressions are caught before release. No change to how the plugin behaves.
-- **v1.5** — three fixes from an estate-wide review. A device's serial-number change is now picked up properly (a lifecycle method had been accidentally disabled), the Configure dialog no longer writes your EcoFlow login back into the stored settings, and the Delta 3's charging/discharging state is reported correctly.
-- **v1.4** — changing a device's serial number now re-establishes communication straight away rather than needing a plugin restart.
-- **v1.3** — every log line now carries a millisecond timestamp, matching the other CliveS plugins.
-- **v1.2** — fixed an intermittent warning when mirroring device readings into Indigo variables, caused by two devices trying to create the same variable at once.
+This plugin lets [Indigo](https://www.indigodomo.com) show and control EcoFlow portable power stations. It signs in to your EcoFlow account, the same one the EcoFlow app uses, and reaches each power station through EcoFlow's servers, so the Mac that runs Indigo needs to reach the internet.
 
----
+- **Shows each power station as an Indigo device** — how full the battery is, solar and mains input, what each socket is supplying, and how long until it is full or empty.
+- **Refreshes every 10 seconds** by asking each power station for its latest readings.
+- **Switches the AC and DC outputs** on and off from a schedule, a trigger or an action group.
+- **Changes the power station's settings** — the charge limit, the lowest level it will run down to, the mains charging power, XBoost, the buzzer, the screen and the standby timer.
+- **Marks a power station offline** after 10 minutes without a reading, with a warning in the Event Log.
+- **Copies the main readings into Indigo variables** if you tick a box, for use on control pages and in scripts.
 
-## Installation
+I ran it with my own Delta 3 and River 3 power stations until I sold them, and it was working the day it came off my Indigo server in July 2026. I no longer have any EcoFlow kit, so I cannot test changes, but the plugin stays here for anyone who has.
 
-1. Go to the [Releases page](https://github.com/Highsteads/EcoFlowCloud/releases) and download `EcoFlowCloud.indigoPlugin.zip`
+## Which power stations it works with
+
+| In Indigo | Your power station |
+|---|---|
+| **EcoFlow River 3** | A River 3 |
+| **EcoFlow Delta 3** | A Delta 3 |
+
+## Installing
+
+1. Go to the [Releases page](https://github.com/Highsteads/EcoFlowCloud/releases/latest) and download `EcoFlowCloud.indigoPlugin.zip`
 2. Unzip the downloaded file — you will get `EcoFlowCloud.indigoPlugin`
 3. Double-click `EcoFlowCloud.indigoPlugin` — Indigo will install it automatically
-4. In Indigo: **Plugins → Manage Plugins → Enable** EcoFlow Cloud
-5. Open **Plugins → EcoFlow Cloud → Configure** and fill in any required fields
 
----
+## Setting it up
 
-## Credentials — `IndigoSecrets.py` vs `IndigoSecrets_example.py`
+1. Open **Plugins → EcoFlow Cloud → Configure**, fill in the **EcoFlow Email** and **EcoFlow Password** you use in the EcoFlow app, set **API Server** to your account's region, and click **Save**.
+2. Create a **New Device**, choose **EcoFlow Cloud** and the model, and type in the power station's **Serial Number**, which the EcoFlow app shows under **Device Info**.
+3. Choose **Plugins → EcoFlow Cloud → Reconnect to EcoFlow Cloud**, and within a few seconds the device should show **Device Online** and fill in its readings.
 
-This plugin, like every CliveS Indigo plugin, reads sensitive values from one
-shared master file:
+The [full guide](https://highsteads.github.io/EcoFlowCloud/) goes through each step, explains every reading and setting, and covers what to do if something does not work.
 
-`/Library/Application Support/Perceptive Automation/IndigoSecrets.py`
+## What's new
 
-| File | Purpose | Real data? | Committed to GitHub? |
-|------|---------|------------|----------------------|
-| `IndigoSecrets.py` | Working file the plugin reads at runtime. Keep a backup in a password manager. | YES | **NO** — listed in `.gitignore` |
-| `IndigoSecrets_example.py` | Template only — empty placeholders. Shipped in the plugin bundle. | NO | YES |
+**v1.10** — The **About** item in the Plugins menu opens this project's page. It went nowhere before. Nothing else changed.
 
-If you don't have `IndigoSecrets.py`, copy `IndigoSecrets_example.py` out of
-the plugin bundle into `/Library/Application Support/Perceptive Automation/`,
-rename it to `IndigoSecrets.py`, and fill in your values. Or skip the file
-altogether and type the values into the plugin's configuration dialog — where
-both are set, `IndigoSecrets.py` wins.
+**v1.9** — Battery capacity reads in true watt-hours. It had been showing milliamp-hours, so a Delta 3 read 20000 Wh instead of about 1024 Wh. A blank value in an action or a setting no longer stops that action from running.
 
-If neither source supplies a value the plugin needs, it logs an ERROR naming
-the key and telling you to either fill in the matching field or add the key to
-`IndigoSecrets.py`.
+**v1.8** — Readings refresh every 10 seconds instead of every 30.
 
----
-
-## Logging
-
-Every log line carries a millisecond timestamp `[HH:MM:SS.mmm]`, so you can
-line events up precisely against the other CliveS plugins — Device Activity
-Monitor uses the same format.
-
-To turn the prefix off, or back on, at any time:
-
-**Plugins → EcoFlow Cloud → Toggle Timestamps in Log (on/off)**
-
-The plugin stores the setting in `pluginPrefs` (`timestampEnabled`) and it
-survives a restart. It defaults to ON.
-
----
-
-## Repository structure
-
-```
-README.md                        ← this file (GitHub displays this)
-EcoFlowCloud.indigoPlugin/
-├── Contents/
-│   ├── Info.plist
-│   └── Server Plugin/
-│       ├── plugin.py
-│       └── ...
-└── Contents/Server Plugin/IndigoSecrets_example.py   ← credential template
-```
+Every version is listed in the [version history](https://highsteads.github.io/EcoFlowCloud/changelog.html).
 
 ## Authors & licence
 
